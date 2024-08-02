@@ -1,0 +1,45 @@
+# Node.js
+nodemodules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Next.js
+.next/
+out/
+build/
+
+# Environment variables
+.env.local
+.env.*.local
+.env
+
+# Logs
+logs
+.log
+npm-debug.log
+yarn-debug.log*
+yarn-error.log*
+
+# OS-specific files
+.DSStore
+Thumbs.db
+
+# Editor directories and files
+.vscode/
+.idea/
+
+# Python
+/backend/venv/
+__pycache/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+/backend/env/
+backend/env.bak/
+backend/venv.bak/
+
+# Flask
+/backend/instance/
+/backend/.pytest_cache/
