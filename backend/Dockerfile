@@ -1,6 +1,6 @@
 
-# 基本イメージとして公式の Python イメージを使用
-FROM python:3.8
+# 基本イメージとして公式の Python 3.10 イメージを使用
+FROM python:3.9
 
 # 作業ディレクトリを設定
 WORKDIR /app
@@ -11,11 +11,11 @@ COPY requirements.txt .
 # 依存関係をインストール
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Djangoプロジェクトを生成
-RUN django-admin startproject carebridge_project .
+# 残りのアプリケーションコードをコピー
+COPY . .
 
 # アプリケーションが使用するポートを公開
 EXPOSE 8000
 
 # アプリケーションを起動
-CMD ["python", "carebridge_project/manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["python", "carebridge/manage.py", "runserver", "0.0.0.0:8000"]

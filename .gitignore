@@ -39,7 +39,3 @@ __pycache/
 /backend/env/
 backend/env.bak/
 backend/venv.bak/
-
-# Flask
-/backend/instance/
-/backend/.pytest_cache/
