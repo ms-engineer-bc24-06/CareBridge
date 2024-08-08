@@ -1,4 +1,6 @@
 from django.db import models
+from django.db import transaction
+import uuid
 
 class Facility(models.Model):
     id = models.AutoField(primary_key=True)
@@ -30,10 +32,12 @@ class Transaction(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 class User(models.Model):
-    id = models.AutoField(primary_key=True)
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user_id = models.CharField(max_length=8, unique=True, blank=True)  # 施設で運用するID
     facility = models.ForeignKey(Facility, on_delete=models.CASCADE)
     password_hash = models.CharField(max_length=255)
     user_name = models.CharField(max_length=10)
+    user_name_kana = models.CharField(max_length=20)
     user_birthday = models.DateField()
     user_sex = models.CharField(max_length=10)
     emergency_contact_name = models.CharField(max_length=50)
@@ -45,23 +49,58 @@ class User(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # 施設内で取り扱いしやすい連番のユーザーIDを付与
+    def save(self, *args, **kwargs):
+        with transaction.atomic():  # トランザクションを使用
+            if not self.user_id:
+                # ID生成用のカウンターを取得し、更新する
+                counter, created = UserCounter.objects.get_or_create(name="user_id")
+                counter.value += 1
+                counter.save()
+                self.user_id = f'{counter.value:08d}'  # 8桁のゼロ埋め
+            super(User, self).save(*args, **kwargs)
+
+# 連番管理：ユーザーIDの最後の番号を保持する専用、常に最新の番号を更新する
+class UserCounter(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    value = models.IntegerField(default=0)
+        
 class Staff(models.Model):
-    id = models.AutoField(primary_key=True)
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    staff_id = models.CharField(max_length=6, unique=True, blank=True)  # 施設で運用するID
     password_hash = models.CharField(max_length=255)
     facility = models.ForeignKey(Facility, related_name='staffs', on_delete=models.CASCADE)
     staff_name = models.CharField(max_length=10)
+    staff_name_kana = models.CharField(max_length=20)
     is_admin = models.BooleanField(default=False)  # デフォルト値をFalseと設定
+    
+    def save(self, *args, **kwargs):
+        with transaction.atomic():  # トランザクションを使ってデータベース操作を保護
+            if not self.staff_id:
+                # 同じ施設内で最後のstaff_idを取得
+                last_staff = Staff.objects.filter(facility=self.facility).order_by('staff_id').last()
+                if last_staff and last_staff.staff_id:
+                    # 新しいstaff_idを生成 (施設内で連番)
+                    new_id = int(last_staff.staff_id) + 1
+                else:
+                    # この施設での最初のスタッフの場合
+                    new_id = 1
+                self.staff_id = f'{new_id:06d}'  # 6桁のゼロ埋め
+            super(Staff, self).save(*args, **kwargs)  # 親クラスのsaveメソッドを呼び出す
+
+    def __str__(self):
+        return f"{self.facility.facility_name} - {self.staff_name}"
 
 class ContactNote(models.Model):
     id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='uuid')
     date = models.DateField()
     detail = models.TextField()
-    staff = models.ForeignKey(Staff, on_delete=models.CASCADE)
+    staff = models.ForeignKey(Staff, on_delete=models.CASCADE, to_field='uuid')
 
 class CareRecord(models.Model):
     id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='uuid')
     date = models.DateField()
     meal = models.CharField(max_length=50)
     excretion = models.CharField(max_length=50)
@@ -70,11 +109,11 @@ class CareRecord(models.Model):
     systolic_bp = models.IntegerField(null=True)
     diastolic_bp = models.IntegerField(null=True)
     comments = models.TextField(null=True)
-    staff = models.ForeignKey(Staff, on_delete=models.CASCADE)
+    staff = models.ForeignKey(Staff, on_delete=models.CASCADE, to_field='uuid')
 
 class MedicalRecord(models.Model):
     id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='uuid')
     date = models.DateField()
     medical_facility_name = models.CharField(max_length=255)
     type = models.CharField(max_length=50)
