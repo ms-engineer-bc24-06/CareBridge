@@ -33,11 +33,6 @@ const UsersManagement: React.FC = () => {
   };
 
   const handleAddUser = () => {
-    // すべての入力項目が埋まっているかチェック
-    if (Object.values(newUser).some(value => value === '')) {
-      alert('すべての入力項目を埋めてください');
-      return;
-    }
     // ユーザー追加ロジック
     setUsers([...users, newUser]);
     setNewUser({ userId: '', name: '', furigana: '', gender: '', birthdate: '', address: '', emergencyContact: '', emergencyContactFurigana: '', relationship: '', emergencyContactPhone: '' });
@@ -58,11 +53,6 @@ const UsersManagement: React.FC = () => {
   };
 
   const handleUpdateUser = () => {
-    // すべての入力項目が埋まっているかチェック
-    if (editUser && Object.values(editUser).some(value => value === '')) {
-      alert('すべての入力項目を埋めてください');
-      return;
-    }
     // 更新ロジック
     if (editUser) {
       setUsers(users.map(user => (user.userId === editUser.userId ? editUser : user)));
@@ -76,6 +66,10 @@ const UsersManagement: React.FC = () => {
 
   const handleSelectUser = (user: User) => {
     setSelectedUser(user);
+  };
+
+  const isFormComplete = (user: User) => {
+    return Object.values(user).every(value => value !== '');
   };
 
   return (
@@ -132,7 +126,7 @@ const UsersManagement: React.FC = () => {
                 onChange={(e) => setEditUser({ ...editUser, userId: e.target.value })}
                 className="border p-2 rounded w-full"
               />
-              {isFieldComplete(editUser.userId) && <span className="text-green-500">✔️</span>}
+              {isFieldComplete(editUser.userId) && <span className="text-green-500">☑️</span>}
             </label>
             <label className="block mb-2">
               名前:
@@ -142,7 +136,7 @@ const UsersManagement: React.FC = () => {
                 onChange={(e) => setEditUser({ ...editUser, name: e.target.value })}
                 className="border p-2 rounded w-full"
               />
-              {isFieldComplete(editUser.name) && <span className="text-green-500">✔️</span>}
+              {isFieldComplete(editUser.name) && <span className="text-green-500">☑️</span>}
             </label>
             <label className="block mb-2">
               ふりがな:
@@ -152,7 +146,7 @@ const UsersManagement: React.FC = () => {
                 onChange={(e) => setEditUser({ ...editUser, furigana: e.target.value })}
                 className="border p-2 rounded w-full"
               />
-              {isFieldComplete(editUser.furigana) && <span className="text-green-500">✔️</span>}
+              {isFieldComplete(editUser.furigana) && <span className="text-green-500">☑️</span>}
             </label>
             <label className="block mb-2">
               性別:
@@ -162,7 +156,7 @@ const UsersManagement: React.FC = () => {
                 onChange={(e) => setEditUser({ ...editUser, gender: e.target.value })}
                 className="border p-2 rounded w-full"
               />
-              {isFieldComplete(editUser.gender) && <span className="text-green-500">✔️</span>}
+              {isFieldComplete(editUser.gender) && <span className="text-green-500">☑️</span>}
             </label>
             <label className="block mb-2">
               生年月日:
@@ -172,7 +166,7 @@ const UsersManagement: React.FC = () => {
                 onChange={(e) => setEditUser({ ...editUser, birthdate: e.target.value })}
                 className="border p-2 rounded w-full"
               />
-              {isFieldComplete(editUser.birthdate) && <span className="text-green-500">✔️</span>}
+              {isFieldComplete(editUser.birthdate) && <span className="text-green-500">☑️</span>}
             </label>
             <label className="block mb-2">
               住所:
@@ -182,37 +176,37 @@ const UsersManagement: React.FC = () => {
                 onChange={(e) => setEditUser({ ...editUser, address: e.target.value })}
                 className="border p-2 rounded w-full"
               />
-              {isFieldComplete(editUser.address) && <span className="text-green-500">✔️</span>}
+              {isFieldComplete(editUser.address) && <span className="text-green-500">☑️</span>}
             </label>
             <label className="block mb-2">
-              緊急連絡先:
+              緊急連絡者の名前:
               <input
                 type="text"
                 value={editUser.emergencyContact}
                 onChange={(e) => setEditUser({ ...editUser, emergencyContact: e.target.value })}
                 className="border p-2 rounded w-full"
               />
-              {isFieldComplete(editUser.emergencyContact) && <span className="text-green-500">✔️</span>}
+              {isFieldComplete(editUser.emergencyContact) && <span className="text-green-500">☑️</span>}
             </label>
             <label className="block mb-2">
-              緊急連絡者の方のふりがな:
+              緊急連絡者のふりがな:
               <input
                 type="text"
                 value={editUser.emergencyContactFurigana}
                 onChange={(e) => setEditUser({ ...editUser, emergencyContactFurigana: e.target.value })}
                 className="border p-2 rounded w-full"
               />
-              {isFieldComplete(editUser.emergencyContactFurigana) && <span className="text-green-500">✔️</span>}
+              {isFieldComplete(editUser.emergencyContactFurigana) && <span className="text-green-500">☑️</span>}
             </label>
             <label className="block mb-2">
-              緊急連絡者の方の続柄:
+              緊急連絡者の続柄:
               <input
                 type="text"
                 value={editUser.relationship}
                 onChange={(e) => setEditUser({ ...editUser, relationship: e.target.value })}
                 className="border p-2 rounded w-full"
               />
-              {isFieldComplete(editUser.relationship) && <span className="text-green-500">✔️</span>}
+              {isFieldComplete(editUser.relationship) && <span className="text-green-500">☑️</span>}
             </label>
             <label className="block mb-2">
               緊急連絡先の電話番号:
@@ -222,7 +216,7 @@ const UsersManagement: React.FC = () => {
                 onChange={(e) => setEditUser({ ...editUser, emergencyContactPhone: e.target.value })}
                 className="border p-2 rounded w-full"
               />
-              {isFieldComplete(editUser.emergencyContactPhone) && <span className="text-green-500">✔️</span>}
+              {isFieldComplete(editUser.emergencyContactPhone) && <span className="text-green-500">☑️</span>}
             </label>
             <div className="flex justify-end space-x-2 mt-4">
               <button onClick={handleUpdateUser} className="bg-blue-500 text-white px-4 py-2 rounded">更新</button>
@@ -244,7 +238,7 @@ const UsersManagement: React.FC = () => {
                 onChange={(e) => setNewUser({ ...newUser, userId: e.target.value })}
                 className="border p-2 rounded w-full"
               />
-              {isFieldComplete(newUser.userId) && <span className="text-green-500">✔️</span>}
+              {isFieldComplete(newUser.userId) && <span className="text-green-500">☑️</span>}
             </label>
             <label className="block mb-2">
               名前:
@@ -254,7 +248,7 @@ const UsersManagement: React.FC = () => {
                 onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
                 className="border p-2 rounded w-full"
               />
-              {isFieldComplete(newUser.name) && <span className="text-green-500">✔️</span>}
+              {isFieldComplete(newUser.name) && <span className="text-green-500">☑️</span>}
             </label>
             <label className="block mb-2">
               ふりがな:
@@ -264,7 +258,7 @@ const UsersManagement: React.FC = () => {
                 onChange={(e) => setNewUser({ ...newUser, furigana: e.target.value })}
                 className="border p-2 rounded w-full"
               />
-              {isFieldComplete(newUser.furigana) && <span className="text-green-500">✔️</span>}
+              {isFieldComplete(newUser.furigana) && <span className="text-green-500">☑️</span>}
             </label>
             <label className="block mb-2">
               性別:
@@ -274,7 +268,7 @@ const UsersManagement: React.FC = () => {
                 onChange={(e) => setNewUser({ ...newUser, gender: e.target.value })}
                 className="border p-2 rounded w-full"
               />
-              {isFieldComplete(newUser.gender) && <span className="text-green-500">✔️</span>}
+              {isFieldComplete(newUser.gender) && <span className="text-green-500">☑️</span>}
             </label>
             <label className="block mb-2">
               生年月日:
@@ -284,7 +278,7 @@ const UsersManagement: React.FC = () => {
                 onChange={(e) => setNewUser({ ...newUser, birthdate: e.target.value })}
                 className="border p-2 rounded w-full"
               />
-              {isFieldComplete(newUser.birthdate) && <span className="text-green-500">✔️</span>}
+              {isFieldComplete(newUser.birthdate) && <span className="text-green-500">☑️</span>}
             </label>
             <label className="block mb-2">
               住所:
@@ -294,50 +288,56 @@ const UsersManagement: React.FC = () => {
                 onChange={(e) => setNewUser({ ...newUser, address: e.target.value })}
                 className="border p-2 rounded w-full"
               />
-              {isFieldComplete(newUser.address) && <span className="text-green-500">✔️</span>}
+              {isFieldComplete(newUser.address) && <span className="text-green-500">☑️</span>}
             </label>
             <label className="block mb-2">
-              緊急連絡先:
+              緊急連絡者の名前:
               <input
                 type="text"
                 value={newUser.emergencyContact}
                 onChange={(e) => setNewUser({ ...newUser, emergencyContact: e.target.value })}
                 className="border p-2 rounded w-full"
               />
-              {isFieldComplete(newUser.emergencyContact) && <span className="text-green-500">✔️</span>}
+              {isFieldComplete(newUser.emergencyContact) && <span className="text-green-500">☑️</span>}
             </label>
             <label className="block mb-2">
-              緊急連絡先ふりがな:
+              緊急連絡者のふりがな:
               <input
                 type="text"
                 value={newUser.emergencyContactFurigana}
                 onChange={(e) => setNewUser({ ...newUser, emergencyContactFurigana: e.target.value })}
                 className="border p-2 rounded w-full"
               />
-              {isFieldComplete(newUser.emergencyContactFurigana) && <span className="text-green-500">✔️</span>}
+              {isFieldComplete(newUser.emergencyContactFurigana) && <span className="text-green-500">☑️</span>}
             </label>
             <label className="block mb-2">
-              続柄:
+              緊急連絡者との続柄:
               <input
                 type="text"
                 value={newUser.relationship}
                 onChange={(e) => setNewUser({ ...newUser, relationship: e.target.value })}
                 className="border p-2 rounded w-full"
               />
-              {isFieldComplete(newUser.relationship) && <span className="text-green-500">✔️</span>}
+              {isFieldComplete(newUser.relationship) && <span className="text-green-500">☑️</span>}
             </label>
             <label className="block mb-2">
-              緊急連絡先電話番号:
+              緊急連絡先の電話番号:
               <input
                 type="text"
                 value={newUser.emergencyContactPhone}
                 onChange={(e) => setNewUser({ ...newUser, emergencyContactPhone: e.target.value })}
                 className="border p-2 rounded w-full"
               />
-              {isFieldComplete(newUser.emergencyContactPhone) && <span className="text-green-500">✔️</span>}
+              {isFieldComplete(newUser.emergencyContactPhone) && <span className="text-green-500">☑️</span>}
             </label>
             <div className="flex justify-end space-x-2 mt-4">
-              <button onClick={handleAddUser} className="bg-green-500 text-white px-4 py-2 rounded">追加</button>
+              <button 
+                onClick={handleAddUser} 
+                className={`bg-green-500 text-white px-4 py-2 rounded ${!isFormComplete(newUser) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                disabled={!isFormComplete(newUser)}
+              >
+                追加
+              </button>
               <button onClick={() => setShowAddForm(false)} className="bg-gray-500 text-white px-4 py-2 rounded">キャンセル</button>
             </div>
           </div>
@@ -347,15 +347,15 @@ const UsersManagement: React.FC = () => {
       {selectedUser && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-6xl h-full overflow-auto">
-            <h2 className="text-2xl mb-4">利用者詳細</h2>
-            <p><strong>ユーザーID:</strong> {selectedUser.userId}</p>
-            <p><strong>名前:</strong> {selectedUser.name} ({selectedUser.furigana})</p>
-            <p><strong>性別:</strong> {selectedUser.gender}</p>
-            <p><strong>生年月日:</strong> {selectedUser.birthdate}</p>
-            <p><strong>住所:</strong> {selectedUser.address}</p>
-            <p><strong>緊急連絡先:</strong> {selectedUser.emergencyContact} ({selectedUser.emergencyContactFurigana})</p>
-            <p><strong>緊急連絡先の方の続柄:</strong> {selectedUser.relationship}</p>
-            <p><strong>緊急連絡先の電話番号:</strong> {selectedUser.emergencyContactPhone}</p>
+            <h2 className="text-3xl mb-4">利用者詳細</h2>
+            <p className="text-xl"><strong>ユーザーID:</strong> {selectedUser.userId}</p>
+            <p className="text-xl"><strong>名前:</strong> {selectedUser.name} ({selectedUser.furigana})</p>
+            <p className="text-xl"><strong>性別:</strong> {selectedUser.gender}</p>
+            <p className="text-xl"><strong>生年月日:</strong> {selectedUser.birthdate}</p>
+            <p className="text-xl"><strong>住所:</strong> {selectedUser.address}</p>
+            <p className="text-xl"><strong>緊急連絡者:</strong> {selectedUser.emergencyContact} ({selectedUser.emergencyContactFurigana})</p>
+            <p className="text-xl"><strong>緊急連絡者との続柄:</strong> {selectedUser.relationship}</p>
+            <p className="text-xl"><strong>緊急連絡先の電話番号:</strong> {selectedUser.emergencyContactPhone}</p>
             <button onClick={() => setSelectedUser(null)} className="bg-gray-500 text-white px-4 py-2 rounded mt-4">閉じる</button>
           </div>
         </div>
