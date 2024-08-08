@@ -9,6 +9,11 @@ const AdminMenuBar = () => {
           href="/admin/users"
           className="group ml-4 flex items-center relative"
         >
+          <img
+            src="/images/admin_user_icon.png"
+            alt="admin"
+            className="mr-1 w-5"
+          />
           利用者管理
           <span className="absolute left-0 bottom-[-13px] w-full h-0.5 bg-secondary opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
         </Link>
@@ -28,9 +33,15 @@ const AdminMenuBar = () => {
           href="/admin/facilities"
           className="group ml-4 flex items-center relative"
         >
+          <img
+            src="/images/admin_facilities_icon.png"
+            alt="admin"
+            className="mr-1 w-5"
+          />
           施設情報
           <span className="absolute left-0 bottom-[-13px] w-full h-0.5 bg-secondary opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
         </Link>
+        
       </div>
     </nav>
   );
