@@ -67,12 +67,29 @@ class UserCounter(models.Model):
         
 class Staff(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    staff_id = models.IntegerField(unique=True, blank=True, null=True)  # 整数型
+    staff_id = models.CharField(max_length=6, unique=True, blank=True)  # 施設で運用するID
     password_hash = models.CharField(max_length=255)
     facility = models.ForeignKey(Facility, related_name='staffs', on_delete=models.CASCADE)
     staff_name = models.CharField(max_length=10)
     staff_name_kana = models.CharField(max_length=20)
     is_admin = models.BooleanField(default=False)  # デフォルト値をFalseと設定
+    
+    def save(self, *args, **kwargs):
+        with transaction.atomic():  # トランザクションを使ってデータベース操作を保護
+            if not self.staff_id:
+                # 同じ施設内で最後のstaff_idを取得
+                last_staff = Staff.objects.filter(facility=self.facility).order_by('staff_id').last()
+                if last_staff and last_staff.staff_id:
+                    # 新しいstaff_idを生成 (施設内で連番)
+                    new_id = int(last_staff.staff_id) + 1
+                else:
+                    # この施設での最初のスタッフの場合
+                    new_id = 1
+                self.staff_id = f'{new_id:06d}'  # 6桁のゼロ埋め
+            super(Staff, self).save(*args, **kwargs)  # 親クラスのsaveメソッドを呼び出す
+
+    def __str__(self):
+        return f"{self.facility.facility_name} - {self.staff_name}"
 
     def save(self, *args, **kwargs):
         with transaction.atomic(): # トランザクションを使ってデータベース操作を保護
