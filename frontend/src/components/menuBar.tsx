@@ -26,7 +26,7 @@ const MenuBar = () => {
           <span className="absolute left-0 bottom-[-13px] w-full h-0.5 bg-secondary opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
         </Link>
         <Link
-          href="/staff/settings"
+          href="/staff/care-records"
           className="group ml-4 flex items-center relative"
         >
           <img
@@ -38,7 +38,7 @@ const MenuBar = () => {
           <span className="absolute left-0 bottom-[-13px] w-full h-0.5 bg-secondary opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
         </Link>
         <Link
-          href="/staff/settings"
+          href="/staff/Information"
           className="group ml-4 flex items-center relative"
         >
           <img
@@ -46,7 +46,7 @@ const MenuBar = () => {
             alt="ContactNotes"
             className="mr-1 w-5"
           />
-          連絡事項登録
+          お知らせ登録
           <span className="absolute left-0 bottom-[-13px] w-full h-0.5 bg-secondary opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
         </Link>
       </div>

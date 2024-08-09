@@ -20,16 +20,18 @@ type UserDetail = {
 
 const UserDetailPage = () => {
   const params = useParams();
-  const { uuid } = params;
-  const [user, setUser] = useState<UserDetail | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { uuid } = params; // URLパラメータからUUIDを取得
+  const [user, setUser] = useState<UserDetail | null>(null); // ユーザー詳細データの状態変数
+  const [loading, setLoading] = useState(true); // ローディング状態を管理する状態変数
 
+  // コンポーネントがマウントされたときにユーザー詳細を取得
   useEffect(() => {
     if (uuid) {
       fetchUserDetail(uuid as string);
     }
   }, [uuid]);
 
+  // ユーザー詳細データをAPIから取得する関数
   const fetchUserDetail = async (userUuid: string) => {
     try {
       const response = await axios.get<UserDetail>(
@@ -43,24 +45,28 @@ const UserDetailPage = () => {
     }
   };
 
+  // ローディング中の表示
   if (loading) {
     return <div>Loading...</div>;
   }
 
+  // ユーザーが見つからなかった場合の表示
   if (!user) {
     return <div>User not found</div>;
   }
 
   return (
     <div className="p-6 min-h-screen">
+      {/* 戻るボタン */}
       <button
         onClick={() => window.history.back()}
         className="text-blue-800 mb-4"
       >
-        利用者一覧に戻る
+        ←利用者一覧に戻る
       </button>
       <div className="flex items-center mb-6">
         <div>
+          {/* ユーザーID、名前、かなの表示 */}
           <h1 className="text-2xl font-bold">{user.user_id}</h1>
           <h1 className="text-xl font-bold">{user.user_name}</h1>
           <p>{user.user_name_kana}</p>
@@ -69,6 +75,7 @@ const UserDetailPage = () => {
       <div className="bg-white shadow rounded-lg p-6">
         <h2 className="text-xl font-bold mb-4">詳細情報</h2>
         <div className="grid grid-cols-2 gap-4">
+          {/* ユーザーの詳細情報を表示 */}
           <div className="mb-2">
             <p className="text-gray-600">氏名（カナ）</p>
             <p className="text-lg">{user.user_name_kana}</p>
