@@ -19,6 +19,7 @@ const config: Config = {
         background: "#F7FAFC",
         header: "#ACB7F2",
         accent: "#E78740",
+        accent2: "#5C8FA8",
         white: "#FFFFFF",
         menuBarText: "#686868",
         text: "#333333",
