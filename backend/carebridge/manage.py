@@ -6,6 +6,8 @@ import sys
 
 def main():
     """Run administrative tasks."""
+        # Pythonパスを出力して確認する
+    print("Python Path:", sys.path)
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'carebridge.settings')
     try:
         from django.core.management import execute_from_command_line
