@@ -1,3 +1,4 @@
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 import uuid
@@ -5,7 +6,7 @@ import uuid
 # ベタ打ちのユーザーデータ
 USERS = [
     {
-        "uuid": str(uuid.uuid4()),
+        "uuid": "b61da427-3ad3-4c41-b268-00a2837cd4b9",
         "user_id": "U001",
         "facility": 1,
         "password_hash": "hash1",
@@ -23,7 +24,7 @@ USERS = [
         "updated_at": "2024-08-01T00:00:00Z"
     },
     {
-        "uuid": str(uuid.uuid4()),
+        "uuid": "85b9c4be-55be-44ca-a52c-001207242ff2",
         "user_id": "U002",
         "facility": 1,
         "password_hash": "hash2",
@@ -41,7 +42,7 @@ USERS = [
         "updated_at": "2024-08-02T00:00:00Z"
     },
     {
-        "uuid": str(uuid.uuid4()),
+        "uuid": "5d5a993b-4c4d-4e36-9597-c00d15ae185f",
         "user_id": "U003",
         "facility": 1,
         "password_hash": "hash3",
@@ -71,3 +72,26 @@ def get_user(request, uuid):
     if user:
         return Response(user)
     return Response({"ユーザーが見つかりません"}, status=404)
+
+@api_view(['POST'])
+def create_user(request):
+    new_user = request.data
+    new_user["uuid"] = str(uuid.uuid4())
+    USERS.append(new_user)
+    return Response(new_user, status=status.HTTP_201_CREATED)
+
+@api_view(['PUT'])
+def update_user(request, uuid):
+    user = next((u for u in USERS if u['uuid'] == str(uuid)), None)
+    if not user:
+        return Response({"ユーザーが見つかりません"}, status=404)
+    updated_data = request.data
+    for key, value in updated_data.items():
+        user[key] = value
+    return Response(user)
+
+@api_view(['DELETE'])
+def delete_user(request, uuid):
+    global USERS
+    USERS = [u for u in USERS if u['uuid'] != str(uuid)]
+    return Response(status=status.HTTP_204_NO_CONTENT)
