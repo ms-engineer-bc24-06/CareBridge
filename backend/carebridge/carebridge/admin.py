@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Facility, Payment, Admin, Transaction, User, UserCounter, Staff, ContactNote, CareRecord, MedicalRecord
+from .models import Facility, Payment, Admin, Transaction, User, UserCounter, Staff, StaffCounter, ContactNote, CareRecord, MedicalRecord
 from django.db import models
 from django.forms import widgets
 
@@ -24,6 +24,7 @@ admin.site.register(Transaction)
 admin.site.register(User)
 admin.site.register(UserCounter)
 admin.site.register(Staff)
+admin.site.register(StaffCounter)
 
 # ContactNote と CareRecord の登録を新しいAdmin クラスで置き換え
 admin.site.register(ContactNote, ContactNoteAdmin)
