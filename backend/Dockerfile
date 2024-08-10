@@ -12,10 +12,10 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # 残りのアプリケーションコードをコピー
-COPY . .
+COPY ./carebridge /app/carebridge
 
 # アプリケーションが使用するポートを公開
 EXPOSE 8000
 
 # アプリケーションを起動
-CMD ["python", "/app/carebridge/manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["python", "carebridge/manage.py", "runserver", "0.0.0.0:8000"]
