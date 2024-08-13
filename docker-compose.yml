@@ -3,6 +3,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+    env_file:
+      - .env
     ports:
       - "3000:3000"
     volumes:
@@ -14,25 +16,38 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    env_file:
+      - .env
     ports:
       - "8000:8000"
     volumes:
       - ./backend:/app
     environment:
-      - DEBUG=1
-      - SECRET_KEY=your-secret-key
-      - DATABASE_URL=postgres://postgres:password@db:5432/postgres
+      - DEBUG=${DEBUG}
+      - SECRET_KEY=${SECRET_KEY}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_HOST=db
+      - DB_PORT=5432
     depends_on:
       - db
+    command: python carebridge/manage.py runserver 0.0.0.0:8000
 
   db:
     image: postgres:13
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env
     environment:
-      - POSTGRES_DB=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+
+networks:
+  default:
+    name: carebridge_network
 
 volumes:
   postgres_data:

@@ -235,7 +235,7 @@
 - クラス図
   ![carebridge_0806_01.jpg](https://prod-files-secure.s3.us-west-2.amazonaws.com/9253397d-598f-4d4b-b1a7-c4bc2e3b6f4e/ec6e8040-3b40-4754-af0a-8dc390ba6538/carebridge_0806_01.jpg)
 - DB 設計書
-  https://docs.google.com/spreadsheets/d/1HSsAgi4a0By0molVQAenzZuSSOHchu71QtyFtuXZITs/edit?gid=522006135#gid=522006135
+  https://docs.google.com/spreadsheets/d/13bnvCpj7YeX6cxNilF4RP8dVmS35m5HR6UPSXXV_-rY/edit?usp=sharing
 - ER 図
   [carebridge | DrawSQL](https://drawsql.app/teams/iyochica/diagrams/carebridge)
 - フロー図

@@ -12,7 +12,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # 残りのアプリケーションコードをコピー
-COPY . .
+COPY ./carebridge /app/carebridge
 
 # アプリケーションが使用するポートを公開
 EXPOSE 8000
