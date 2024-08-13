@@ -5,7 +5,6 @@ from carebridge.models import User
 from .serializers import UserSerializer
 from uuid import UUID
 
-
 @api_view(['GET'])
 def get_users(request):
     users = User.objects.all()
@@ -15,7 +14,7 @@ def get_users(request):
 @api_view(['GET'])
 def get_user(request, uuid):
     try:
-        user = User.objects.get(uuid=UUID(uuid))
+        user = User.objects.get(uuid=uuid)  # ここでUUIDの再変換は不要
         serializer = UserSerializer(user)
         return Response(serializer.data)
     except User.DoesNotExist:
@@ -32,7 +31,7 @@ def create_user(request):
 @api_view(['PUT'])
 def update_user(request, uuid):
     try:
-        user = User.objects.get(uuid=UUID(uuid))
+        user = User.objects.get(uuid=uuid)  # ここでUUIDの再変換は不要
         serializer = UserSerializer(user, data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -44,12 +43,12 @@ def update_user(request, uuid):
 @api_view(['DELETE'])
 def delete_user(request, uuid):
     try:
-        user = User.objects.get(uuid=UUID(uuid))
+        user = User.objects.get(uuid=uuid)  # ここでUUIDの再変換は不要
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     except User.DoesNotExist:
         return Response({"ユーザーが見つかりません"}, status=404)
-    
+
 
 # ベタ打ちのユーザーデータ
 # USERS = [
