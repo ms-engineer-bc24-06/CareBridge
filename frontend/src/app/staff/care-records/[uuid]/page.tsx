@@ -171,7 +171,7 @@ const CareRecordsPage = () => {
         )}
         <button
           onClick={openModal}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
+          className="bg-secondary text-white px-4 py-2 rounded"
         >
           ケア登録
         </button>

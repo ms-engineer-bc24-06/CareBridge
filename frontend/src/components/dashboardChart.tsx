@@ -55,7 +55,6 @@ const DashboardChart = ({ userUuid }: DashboardChartProps) => {
       const response = await axios.get<CareRecord[]>(
         `http://localhost:8000/api/care-records/${userUuid}/`
       );
-      console.log("Fetched care records:", response.data);
 
       // 日付順にソートし、最新の7日間のデータを取得
       const sortedRecords = response.data.sort(
@@ -64,7 +63,7 @@ const DashboardChart = ({ userUuid }: DashboardChartProps) => {
       const latestSevenRecords = sortedRecords.slice(0, 7);
       setCareRecords(latestSevenRecords);
     } catch (error) {
-      console.error("Error fetching care records:", error);
+      console.error("ケア記録の取得中にエラーが発生しました");
     }
   };
 
@@ -132,8 +131,16 @@ const DashboardChart = ({ userUuid }: DashboardChartProps) => {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div className="mb-8" style={{ width: "400px", height: "300px" }}>
-        <h2 className="text-xl mb-2">体温</h2>
+      <div
+        className="mb-8 sm:mb-0"
+        style={{
+          width: "100%",
+          height: "200px", // sm以下では高さ200px
+          maxWidth: "400px", // sm以上では最大幅400px
+          maxHeight: "300px", // sm以上では最大高さ300px
+        }}
+      >
+        <h2 className="md:text-xl text-lg mb-2">体温</h2>
         <Line
           data={temperatureData}
           options={temperatureOptions}
@@ -141,8 +148,15 @@ const DashboardChart = ({ userUuid }: DashboardChartProps) => {
           height={300}
         />
       </div>
-      <div style={{ width: "400px", height: "300px" }}>
-        <h2 className="text-xl mb-2">血圧</h2>
+      <div
+        style={{
+          width: "100%",
+          height: "200px", // sm以下では高さ200px
+          maxWidth: "400px", // sm以上では最大幅400px
+          maxHeight: "300px", // sm以上では最大高さ300px
+        }}
+      >
+        <h2 className="md:text-xl text-lg mb-2">血圧</h2>
         <Line
           data={bloodPressureData}
           options={bloodPressureOptions}
