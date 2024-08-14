@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import styles from '../styles/ContactForm.module.css';
 
+// フォームのデータ型
 type FormData = {
   inquiryType: string[];
   message: string;
@@ -23,6 +24,7 @@ type FormData = {
 };
 
 const Contact = () => {
+  // フォームの初期データ
   const [formData, setFormData] = useState<FormData>({
     inquiryType: [],
     message: '',
@@ -40,6 +42,7 @@ const Contact = () => {
     errors: {},
   });
 
+  // 郵便番号のフォーマット関数
   const formatPostalCode = (value: string) => {
     const cleaned = value.replace(/\D/g, '').slice(0, 7);
     if (cleaned.length > 3) {
@@ -48,6 +51,7 @@ const Contact = () => {
     return cleaned;
   };
 
+  // 電話番号のフォーマット関数
   const formatPhoneNumber = (value: string) => {
     const cleaned = value.replace(/\D/g, '');
     if (cleaned.length <= 3) {
@@ -57,9 +61,10 @@ const Contact = () => {
     } else if (cleaned.length <= 11) {
       return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 7)}-${cleaned.slice(7)}`;
     }
-    return cleaned.slice(0, 13); // 最大13文字に制限
+    return cleaned.slice(0, 13);
   };
 
+  // 入力変更時の処理
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
 
@@ -72,11 +77,12 @@ const Contact = () => {
 
     setFormData({
         ...formData,
-        [name as keyof FormData]: formattedValue,  // 型キャストを追加
-        errors: { ...formData.errors, [name as keyof FormData]: '' },  // 型キャストを追加
+        [name as keyof FormData]: formattedValue,
+        errors: { ...formData.errors, [name as keyof FormData]: '' },
     });
   };
 
+  // チェックボックス変更時の処理
   const handleCheckBoxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, checked } = e.target;
     if (checked) {
@@ -92,6 +98,7 @@ const Contact = () => {
     }
   };
 
+  // フォームのバリデーション
   const validateForm = () => {
     const newErrors: FormData['errors'] = {};
     if (!formData.companyName) newErrors.companyName = '必須項目です';
@@ -109,12 +116,13 @@ const Contact = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // フォーム送信時の処理
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
       alert('お問合せ送信完了しました。');
       console.log('Form Data Submitted:', formData);
-      // ここでフォームデータを処理する
+      // フォームデータをここで処理
     }
   };
 

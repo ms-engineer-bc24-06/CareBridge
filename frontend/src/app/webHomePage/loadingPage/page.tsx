@@ -7,13 +7,13 @@ const LoadingPage: React.FC = () => {
   const router = useRouter();
 
   useEffect(() => {
-    // 4秒後に詳細ページにリダイレクト
+    console.log('LoadingPage rendered'); // レンダリング回数を確認
     const timer = setTimeout(() => {
       router.push('/webHomePage/details');
-    }, 4000);
+    }, 3000);
 
     return () => clearTimeout(timer);
-  }, [router]);
+  }, []); // 空の依存関係配列に変更
 
   return (
     <div style={{

@@ -4,7 +4,6 @@ import Header from '../../../components/header';
 import WebHomePageMenuBar from '../../../components/webHomePageMenuBar'; 
 import { useRouter } from 'next/navigation';
 
-
 const Details: React.FC = () => {
   const router = useRouter(); // ルーターを初期化
 
@@ -242,7 +241,6 @@ const Details: React.FC = () => {
           <p><strong>事業内容:</strong> 介護事業向け業務支援、データ分析、情報連携にかかるシステム開発、及びインフラ構築、企画、販売、運用保守</p>
         </div>
       </div>
-
 
       <style jsx>{`
         @keyframes fadeInText {
