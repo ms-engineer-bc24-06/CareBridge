@@ -187,7 +187,7 @@ const Contact = () => {
           </div>
           <div>
             <label>メールアドレス<span className={styles.required}>*</span></label>
-            <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="例：haruka@carebridge.com" />
+            <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="例：haru@carebridge.com" />
             {formData.errors.email && <p className={styles.error}>{formData.errors.email}</p>}
           </div>
           <div>

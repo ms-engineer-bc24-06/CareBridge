@@ -8,7 +8,7 @@ const Details: React.FC = () => {
   const router = useRouter(); // ルーターを初期化
 
   const handleContactClick = () => {
-    router.push('/webHomePage/contact'); // 指定されたページに遷移
+    router.push('/webHomePage/contact'); 
   };
 
   return (
