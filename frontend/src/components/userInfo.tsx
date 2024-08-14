@@ -42,7 +42,7 @@ const UserInfo = ({ userUuid }: UserInfoProps) => {
       );
       setUserDetail(response.data);
     } catch (error) {
-      console.error("ユーザー詳細の取得中にエラーが発生しました", error);
+      console.error("ユーザー詳細の取得中にエラーが発生しました");
     }
   };
 
@@ -57,7 +57,7 @@ const UserInfo = ({ userUuid }: UserInfoProps) => {
       calculateExcretionInfo(records);
       determineAppetiteStatus(records);
     } catch (error) {
-      console.error("ケア記録の取得中にエラーが発生しました", error);
+      console.error("ケア記録の取得中にエラーが発生しました");
     }
   };
 
@@ -104,34 +104,38 @@ const UserInfo = ({ userUuid }: UserInfoProps) => {
   };
 
   return (
-    <div className="bg-white shadow rounded-lg p-6 mb-6">
+    <div className="bg-white shadow rounded-lg md:p-6 p-4 md:mb-6 mb-4">
       {userDetail && (
         <div>
-          <h2 className="text-xl font-bold mb-4">
-            {userDetail.user_name}の現在の状況
+          <h2 className="md:text-xl text-lg font-bold md:mb-4 mb-2">
+            {userDetail.user_name}さんの現在の状況
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="mb-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:gap-4 gap-2">
+            <div className="md:mb-2 mb-1">
               <p className="text-gray-600">最後の排便からの経過日数</p>
-              <p className="text-lg">
+              <p className="md:text-lg text-base">
                 {daysSinceLastExcretion !== null
                   ? `${daysSinceLastExcretion}日`
                   : "データなし"}
               </p>
             </div>
-            <div className="mb-2">
+            <div className="md:mb-2 mb-1">
               <p className="text-gray-600">食欲</p>
-              <p className="text-lg">
+              <p className="md:text-lg text-base">
                 {appetiteStatus !== null ? appetiteStatus : "データなし"}
               </p>
             </div>
-            <div className="mb-2">
+            <div className="md:mb-2 mb-1">
               <p className="text-gray-600">アレルギー情報</p>
-              <p className="text-lg">{userDetail.allergies || "なし"}</p>
+              <p className="md:text-lg text-base">
+                {userDetail.allergies || "なし"}
+              </p>
             </div>
-            <div className="mb-2">
+            <div className="md:mb-2 mb-1">
               <p className="text-gray-600">服用中の薬</p>
-              <p className="text-lg">{userDetail.medications || "なし"}</p>
+              <p className="md:text-lg text-base">
+                {userDetail.medications || "なし"}
+              </p>
             </div>
           </div>
         </div>
