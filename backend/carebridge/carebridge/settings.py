@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'carebridge',
     'corsheaders',
     'caredata',
+    'payments',  # 支払い情報のアプリをここに追加
 ]
 
 MIDDLEWARE = [
