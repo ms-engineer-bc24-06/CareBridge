@@ -110,8 +110,14 @@ const Users: React.FC = () => {
                 </Link>
                 {/* ダッシュボードボタン */}
                 <Link href={`/staff/dashboard?user=${user.uuid}`}>
-                  <button className="bg-accent text-white px-4 py-2 rounded">
+                  <button className="bg-accent2 text-white px-4 py-2 rounded">
                     ボード
+                  </button>
+                </Link>
+                {/* 連絡ノートボタン */}
+                <Link href={`/staff/contact-notes/${user.uuid}`}>
+                  <button className="bg-accent2 text-white px-4 py-2 rounded">
+                    連絡ノート
                   </button>
                 </Link>
               </td>
