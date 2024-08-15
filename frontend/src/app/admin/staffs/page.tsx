@@ -1,36 +1,37 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../../lib/firebaseConfig";
 
-// 職員データの型を定義
 interface Staff {
-  id?: number;  // 職員ID（省略可能）
-  password_hash: string;  // パスワードのハッシュ
-  facility: number;  // 所属施設のID
-  staff_name: string;  // 職員名
-  is_admin: boolean;  // 管理者権限フラグ
+  id?: number;  
+  user_id: string; // メールアドレスのフィールド
+  password_hash: string;  
+  facility: number;  
+  staff_name: string;  
+  is_admin: boolean;  
 }
 
 const StaffsManagement: React.FC = () => {
-  // 状態を管理するためのフック
-  const [searchTerm, setSearchTerm] = useState<string>('');  // 検索用の入力値
-  const [staffs, setStaffs] = useState<Staff[]>([]);  // 取得した職員リスト
-  const [filteredStaffs, setFilteredStaffs] = useState<Staff[]>([]);  // フィルタされた職員リスト
-  const [newStaff, setNewStaff] = useState<Staff>({  // 新規追加用の職員データ
+  const [searchTerm, setSearchTerm] = useState<string>('');  
+  const [staffs, setStaffs] = useState<Staff[]>([]);  
+  const [filteredStaffs, setFilteredStaffs] = useState<Staff[]>([]);  
+  const [newStaff, setNewStaff] = useState<Staff>({  
+    user_id: '',  // 初期値を設定
     password_hash: '',
     facility: 1,
     staff_name: '',
     is_admin: false
   });
-  const [editStaff, setEditStaff] = useState<Staff | null>(null);  // 編集対象の職員データ
-  const [showAddForm, setShowAddForm] = useState<boolean>(false);  // 新規追加フォームの表示状態
+  const [editStaff, setEditStaff] = useState<Staff | null>(null);  
+  const [showAddForm, setShowAddForm] = useState<boolean>(false);  
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});  
 
-  // コンポーネントの初回レンダリング時に職員データを取得
   useEffect(() => {
     fetchStaffs();
   }, []);
 
-  // 検索ワードが変更されたときに職員リストをフィルタリング
   useEffect(() => {
     if (searchTerm === '') {
       setFilteredStaffs(staffs);
@@ -43,71 +44,103 @@ const StaffsManagement: React.FC = () => {
     }
   }, [searchTerm, staffs]);
 
-  // APIから職員データを取得する関数
   const fetchStaffs = async () => {
     try {
       const response = await axios.get<Staff[]>('http://localhost:8000/api/staffs/');
-      setStaffs(response.data);  // 取得したデータをstateに保存
-      setFilteredStaffs(response.data);  // フィルタリング用にも保存
+      setStaffs(response.data);  
+      setFilteredStaffs(response.data);  
     } catch (error) {
       console.error("職員の取得中にエラーが発生しました", error);
     }
   };
 
-  // 新しい職員を追加する関数
   const handleAddStaff = async () => {
+    const validationErrors = validateForm(newStaff);
+    if (Object.keys(validationErrors).length > 0) {
+        setErrors(validationErrors);
+        return;
+    }
+
     try {
-      const response = await axios.post('http://localhost:8000/api/staffs/', newStaff);
-      setStaffs([...staffs, response.data]);  // 新規職員をリストに追加
-      setFilteredStaffs([...staffs, response.data]);  // フィルタリング用リストも更新
-      setNewStaff({
-        password_hash: '',
-        facility: 1,
-        staff_name: '',
-        is_admin: false
-      });
-      setShowAddForm(false);  // フォームを閉じる
+        const email = newStaff.user_id; // メールアドレスをそのまま使用
+        const password = newStaff.password_hash; // Firebase用にパスワードを取得
+
+        // Firebaseにユーザーを作成
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        console.log("Firebaseに新しいユーザーが作成されました:", userCredential.user);
+
+        // Firebaseにユーザーが作成されたら、バックエンドにもスタッフ情報を保存
+        const response = await axios.post('http://localhost:8000/api/staffs/', newStaff);
+        setStaffs([...staffs, response.data]);  
+        setFilteredStaffs([...staffs, response.data]);  
+        setNewStaff({
+            user_id: '',
+            password_hash: '',
+            facility: 1,
+            staff_name: '',
+            is_admin: false
+        });
+        setShowAddForm(false);  
+        setErrors({});
     } catch (error) {
-      console.error("職員の追加中にエラーが発生しました", error);
+        console.error("職員の追加中にエラーが発生しました", error);
+        setErrors({ firebase: "Firebaseユーザーの作成に失敗しました" });
     }
   };
 
-  // 編集する職員を選択する関数
   const handleEditStaff = (id: number) => {
     const staffToEdit = staffs.find(staff => staff.id === id);
     if (staffToEdit) {
-      setEditStaff(staffToEdit);  // 編集対象の職員をstateに保存
+      setEditStaff(staffToEdit);  
     }
   };
 
-  // 職員を削除する関数
   const handleDeleteStaff = async (id: number) => {
     try {
       await axios.delete(`http://localhost:8000/api/staffs/${id}/`);
-      setStaffs(staffs.filter(staff => staff.id !== id));  // 削除された職員をリストから除外
-      setFilteredStaffs(staffs.filter(staff => staff.id !== id));  // フィルタリング用リストも更新
+      setStaffs(staffs.filter(staff => staff.id !== id));  
+      setFilteredStaffs(staffs.filter(staff => staff.id !== id));  
     } catch (error) {
       console.error("職員の削除中にエラーが発生しました", error);
     }
   };
 
-  // 職員情報を更新する関数
   const handleUpdateStaff = async () => {
-    if (editStaff) {
-      try {
-        const response = await axios.put(`http://localhost:8000/api/staffs/${editStaff.id}/`, editStaff);
-        setStaffs(staffs.map(staff => (staff.id === editStaff.id ? response.data : staff)));  // 更新された職員情報をリストに反映
-        setFilteredStaffs(staffs.map(staff => (staff.id === editStaff.id ? response.data : staff)));  // フィルタリング用リストも更新
-        setEditStaff(null);  // 編集モードを終了
-      } catch (error) {
-        console.error("職員の更新中にエラーが発生しました", error);
-      }
+    const validationErrors = validateForm(editStaff!);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    try {
+      const response = await axios.put(`http://localhost:8000/api/staffs/${editStaff!.id}/`, editStaff!);
+      setStaffs(staffs.map(staff => (staff.id === editStaff!.id ? response.data : staff)));  
+      setFilteredStaffs(staffs.map(staff => (staff.id === editStaff!.id ? response.data : staff))); 
+      setEditStaff(null);  
+      setErrors({});
+    } catch (error) {
+      console.error("職員の更新中にエラーが発生しました", error);
     }
   };
 
-  // 入力フィールドが適切に入力されているかをチェックする関数
-  const isFieldComplete = (value: string | number | boolean | undefined) => {
-    return value !== '' && value !== null && value !== undefined;
+  const validateForm = (staff: Staff) => {
+    const newErrors: { [key: string]: string } = {};
+    if (!staff.staff_name) newErrors.staff_name = '入力必須項目です';
+    if (!staff.user_id) newErrors.user_id = '入力必須項目です';
+    if (!staff.password_hash && !editStaff) newErrors.password_hash = '入力必須項目です';
+    if (staff.password_hash.length < 6) newErrors.password_hash = 'パスワードは6文字以上である必要があります';
+    return newErrors;
+  };
+
+  const renderRequiredLabel = () => (
+    <span style={{ color: 'red' }}>*</span>
+  );
+
+  const renderErrorMessage = (fieldName: string) => {
+    if (errors[fieldName]) {
+      return <span style={{ color: 'red' }}>{errors[fieldName]}</span>;
+    }
+    return null;
   };
 
   return (
@@ -118,13 +151,13 @@ const StaffsManagement: React.FC = () => {
           <input
             type="text"
             placeholder="名前で検索"
-            value={searchTerm}  // 検索ワードをstateに保存
-            onChange={(e) => setSearchTerm(e.target.value)}  // 検索ワードの変更を反映
+            value={searchTerm}  
+            onChange={(e) => setSearchTerm(e.target.value)}  
             className="border p-2 rounded mr-2"
           />
           <button onClick={() => setSearchTerm('')} className="bg-secondary text-white px-4 py-2 rounded">クリア</button>
         </div>
-        <button onClick={() => setShowAddForm(true)} className="bg-green-500 text-white px-4 py-2 rounded">+ 追加</button>
+        <button onClick={() => { setShowAddForm(true); setErrors({}); }} className="bg-green-500 text-white px-4 py-2 rounded">+ 追加</button>
       </div>
       <table className="min-w-full bg-white shadow rounded-lg">
         <thead>
@@ -143,7 +176,7 @@ const StaffsManagement: React.FC = () => {
               <td className="py-2 px-4 border-b">
                 <input
                   type="checkbox"
-                  checked={staff.is_admin}  // 管理者権限を表示（変更不可）
+                  checked={staff.is_admin}  
                   readOnly
                   className="h-4 w-4"
                 />
@@ -163,25 +196,14 @@ const StaffsManagement: React.FC = () => {
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-4xl">
             <h2 className="text-2xl mb-4">職員情報を編集</h2>
             <label className="block mb-2">
-              職員ID:
-              <input
-                type="text"
-                value={editStaff.id ?? ''}  // 職員ID（変更不可）
-                onChange={(e) => setEditStaff({ ...editStaff, id: parseInt(e.target.value) })}
-                className="border p-2 rounded w-full"
-                readOnly  // IDは編集できないようにする
-              />
-              <input type="checkbox" checked={isFieldComplete(editStaff.id)} readOnly />
-            </label>
-            <label className="block mb-2">
-              名前:
+              名前{renderRequiredLabel()}:
               <input
                 type="text"
                 value={editStaff.staff_name}
                 onChange={(e) => setEditStaff({ ...editStaff, staff_name: e.target.value })}
                 className="border p-2 rounded w-full"
               />
-              <input type="checkbox" checked={isFieldComplete(editStaff.staff_name)} readOnly />
+              {renderErrorMessage("staff_name")}
             </label>
             <label className="block mb-2">
               管理者権限:
@@ -191,7 +213,6 @@ const StaffsManagement: React.FC = () => {
                 onChange={(e) => setEditStaff({ ...editStaff, is_admin: e.target.checked })}
                 className="h-4 w-4"
               />
-              <input type="checkbox" checked={editStaff.is_admin} readOnly />
             </label>
             <div className="flex justify-end space-x-2 mt-4">
               <button onClick={handleUpdateStaff} className="bg-blue-500 text-white px-4 py-2 rounded">更新</button>
@@ -207,34 +228,37 @@ const StaffsManagement: React.FC = () => {
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-4xl">
             <h2 className="text-2xl mb-4">新規職員追加</h2>
             <label className="block mb-2">
-              職員ID:
-              <input
-                type="text"
-                value={newStaff.id ?? ''}  // 職員IDの入力（省略可能）
-                onChange={(e) => setNewStaff({ ...newStaff, id: parseInt(e.target.value) })}
-                className="border p-2 rounded w-full"
-              />
-              <input type="checkbox" checked={isFieldComplete(newStaff.id)} readOnly />
-            </label>
-            <label className="block mb-2">
-              名前:
+              名前{renderRequiredLabel()}:
               <input
                 type="text"
                 value={newStaff.staff_name}
                 onChange={(e) => setNewStaff({ ...newStaff, staff_name: e.target.value })}
                 className="border p-2 rounded w-full"
               />
-              <input type="checkbox" checked={isFieldComplete(newStaff.staff_name)} readOnly />
+              {renderErrorMessage("staff_name")}
             </label>
             <label className="block mb-2">
-              管理者権限:
+              メールアドレス{renderRequiredLabel()}:
               <input
-                type="checkbox"
-                checked={newStaff.is_admin}
-                onChange={(e) => setNewStaff({ ...newStaff, is_admin: e.target.checked })}
-                className="h-4 w-4"
+                type="email"
+                value={newStaff.user_id}
+                onChange={(e) => setNewStaff({ ...newStaff, user_id: e.target.value })}
+                className="border p-2 rounded w-full"
               />
-              <input type="checkbox" checked={newStaff.is_admin} readOnly />
+              {renderErrorMessage("user_id")}
+            </label>
+            <label className="block mb-2">
+              パスワード{renderRequiredLabel()}:
+              <input
+                type="password"
+                value={newStaff.password_hash}
+                onChange={(e) => setNewStaff({ ...newStaff, password_hash: e.target.value })}
+                className="border p-2 rounded w-full"
+                minLength={6} // HTMLのバリデーションも追加
+                required
+              />
+              {renderErrorMessage("password_hash")}
+              <small className="text-gray-500">6文字以上のパスワードを入力してください</small>
             </label>
             <div className="flex justify-end space-x-2 mt-4">
               <button onClick={handleAddStaff} className="bg-green-500 text-white px-4 py-2 rounded">追加</button>
@@ -248,4 +272,3 @@ const StaffsManagement: React.FC = () => {
 };
 
 export default StaffsManagement;
-
