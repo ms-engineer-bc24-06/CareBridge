@@ -8,4 +8,5 @@ urlpatterns = [
     path('api/', include('staffs.urls')), # スタッフ情報
     path('api/', include('facilities.urls')), # 施設情報
     path('api/', include('logout.urls')),  # logoutのエンドポイントを追加
+    path('api/payments/', include('payments.urls')),  # 支払い情報
 ]
