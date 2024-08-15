@@ -17,6 +17,9 @@ class Payment(models.Model):
     card_cvc = models.CharField(max_length=3)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.facility.facility_name} - Payment"
 
 class Admin(models.Model):
     id = models.AutoField(primary_key=True)
@@ -30,6 +33,9 @@ class Transaction(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=50)
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.facility.facility_name} - {self.status} - {self.created_at}"
 
 class User(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -59,6 +65,9 @@ class User(models.Model):
                 counter.save()
                 self.user_id = f'{counter.value:08d}'  # 8桁のゼロ埋め
             super(User, self).save(*args, **kwargs)
+    
+    def __str__(self):
+        return f"{self.facility.facility_name} - {self.user_name} ({self.uuid})"
 
 # 連番管理：ユーザーIDの最後の番号を保持する専用、常に最新の番号を更新する
 class UserCounter(models.Model):
@@ -113,6 +122,9 @@ class ContactNote(models.Model):
     date = models.DateField()
     detail = models.TextField()
     staff = models.ForeignKey(Staff, on_delete=models.CASCADE, to_field='staff_id')
+    
+    def __str__(self):
+        return f"{self.user} - {self.date}"
 
 class CareRecord(models.Model):
     id = models.AutoField(primary_key=True)
@@ -126,6 +138,9 @@ class CareRecord(models.Model):
     diastolic_bp = models.IntegerField(null=True)
     comments = models.TextField(null=True)
     staff = models.ForeignKey(Staff, on_delete=models.CASCADE, to_field='staff_id')
+    
+    def __str__(self):
+        return f"{self.user} - {self.date}"
 
 class MedicalRecord(models.Model):
     id = models.AutoField(primary_key=True)
@@ -134,3 +149,6 @@ class MedicalRecord(models.Model):
     medical_facility_name = models.CharField(max_length=255)
     type = models.CharField(max_length=50)
     detail = models.TextField()
+    
+    def __str__(self):
+        return f"{self.user} - {self.date}"
