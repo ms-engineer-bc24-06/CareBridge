@@ -1,18 +1,14 @@
-// src/firebaseConfig.ts
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
-
 const firebaseConfig = {
-  apiKey: "AIzaSyDt5tZuQktKWbH4HPOKpykHjSmFgPfZfAM",
-  authDomain: "carebridge-3eb49.firebaseapp.com",
-  projectId: "carebridge-3eb49",
-  storageBucket: "carebridge-3eb49.appspot.com",
-  messagingSenderId: "202846085412",
-  appId: "1:202846085412:web:c84df0388a96268a8dd3b1"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
-
-
 
 // Firebase アプリの初期化
 const app = initializeApp(firebaseConfig);
@@ -20,3 +16,4 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 export { auth };
+
