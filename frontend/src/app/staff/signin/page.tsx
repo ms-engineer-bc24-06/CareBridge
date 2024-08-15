@@ -7,21 +7,20 @@ import Link from "next/link";
 
 const SignInPage: React.FC = () => {
   const router = useRouter();
-  const [userId, setUserId] = useState<string>(""); // emailからuserIdに変更
-  const [password, setPassword] = useState<string>("");
+  const [email, setEmail] = useState<string>(""); // ユーザーのメールアドレスを保持
+  const [password, setPassword] = useState<string>(""); // ユーザーのパスワードを保持
   const [error, setError] = useState<string>("");
 
   const handleSignIn = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const email = `${userId}@example.com`; // ユーザーIDをメールアドレス形式に変換
 
     try {
       console.log("Attempting sign in with email:", email);
-      await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(auth, email, password); // Firebaseでのサインイン
       console.log("Sign in successful, redirecting to /top");
-      router.push("/staff/top"); 
+      router.push("/staff/top"); // ログイン成功時にリダイレクト
     } catch (error) {
-      setError("ログインできませんでした。ユーザーIDとパスワードを確認してください。");
+      setError("ログインできませんでした。メールアドレスとパスワードを確認してください。");
     }
   };
 
@@ -32,17 +31,17 @@ const SignInPage: React.FC = () => {
       <h1 className="text-4xl mb-12">ログイン</h1>
       <form onSubmit={handleSignIn} className="w-96 bg-white p-8 rounded-lg shadow-lg"> {/* w-96でフォームの幅を広げる */}
         <div className="mb-6">
-          <label htmlFor="userId" className="block text-gray-700 text-xl mb-2">ユーザーID</label>
+          <label htmlFor="email" className="block text-gray-700 text-xl mb-2">メールアドレス</label>
           <input
-            type="text"
-            id="userId"
+            type="email"
+            id="email"
             className="w-full border border-gray-300 p-4 rounded-lg text-xl"
-            value={userId}
-            onChange={(e) => setUserId(e.target.value)}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
-            placeholder="ユーザーIDを入力してください"
+            placeholder="例: example@example.com"
           />
-          <small className="text-gray-500">例: 123456</small>
+          <small className="text-gray-500">メールアドレスを入力してください</small>
         </div>
         <div className="mb-6">
           <label htmlFor="password" className="block text-gray-700 text-xl mb-2">パスワード</label>
@@ -75,6 +74,7 @@ const SignInPage: React.FC = () => {
 };
 
 export default SignInPage;
+
 
 
 
