@@ -1,5 +1,6 @@
 from django.db import models
 from django.db import transaction
+from django.core.validators import EmailValidator
 import uuid
 
 class Facility(models.Model):
@@ -7,14 +8,21 @@ class Facility(models.Model):
     facility_name = models.CharField(max_length=20)
     address = models.CharField(max_length=50)
     phone_number = models.CharField(max_length=20)
+    contact_person = models.CharField(max_length=20)
     email = models.EmailField()
+    email_domain = models.CharField(max_length=50, validators=[EmailValidator(message="Enter a valid domain")])
+    
+    def save(self, *args, **kwargs):
+        if '@' in self.email:
+            self.email_domain = self.email.split('@')[1]
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return self.facility_name
 
 class Payment(models.Model):
     id = models.AutoField(primary_key=True)
     facility = models.ForeignKey(Facility, on_delete=models.CASCADE)
-    card_number = models.CharField(max_length=16)
-    card_expiry = models.CharField(max_length=5)
-    card_cvc = models.CharField(max_length=3)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -39,6 +47,7 @@ class Transaction(models.Model):
 
 class User(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    firebase_uid = models.CharField(max_length=128, unique=True, blank=True)
     user_id = models.CharField(max_length=8, unique=True, blank=True)  # 施設で運用するID
     facility = models.ForeignKey(Facility, on_delete=models.CASCADE)
     password_hash = models.CharField(max_length=255)
@@ -76,6 +85,7 @@ class UserCounter(models.Model):
         
 class Staff(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    firebase_uid = models.CharField(max_length=128, unique=True, blank=True)
     staff_id = models.CharField(max_length=6, unique=True, blank=True)  # 施設で運用するID
     password_hash = models.CharField(max_length=255)
     facility = models.ForeignKey(Facility, related_name='staffs', on_delete=models.CASCADE)
@@ -122,6 +132,7 @@ class ContactNote(models.Model):
     date = models.DateField()
     detail = models.TextField()
     staff = models.ForeignKey(Staff, on_delete=models.CASCADE, to_field='staff_id')
+    is_confirmed = models.BooleanField(default=False)
     
     def __str__(self):
         return f"{self.user} - {self.date}"
