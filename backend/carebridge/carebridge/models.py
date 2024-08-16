@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.db import models
 from django.db import transaction
 from django.core.validators import EmailValidator
@@ -23,7 +24,8 @@ class Facility(models.Model):
 class Payment(models.Model):
     id = models.AutoField(primary_key=True)
     facility = models.ForeignKey(Facility, on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
+    stripe_payment_method_id = models.CharField(max_length=255, unique=True, null=False)
+    created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
@@ -36,11 +38,12 @@ class Admin(models.Model):
 
 class Transaction(models.Model):
     id = models.AutoField(primary_key=True)
-    facility = models.ForeignKey(Facility, on_delete=models.CASCADE)
-    payment = models.ForeignKey(Payment, on_delete=models.CASCADE)
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    status = models.CharField(max_length=50)
-    created_at = models.DateTimeField(auto_now_add=True)
+    facility = models.ForeignKey(Facility, on_delete=models.CASCADE, null=False)
+    payment = models.ForeignKey(Payment, on_delete=models.CASCADE, null=False)
+    amount = models.DecimalField(max_digits=10, decimal_places=2, null=False)
+    status = models.CharField(max_length=50, null=False)
+    stripe_transaction_id = models.CharField(max_length=255, unique=True, null=False)
+    created_at = models.DateTimeField(default=timezone.now)
     
     def __str__(self):
         return f"{self.facility.facility_name} - {self.status} - {self.created_at}"
@@ -50,7 +53,6 @@ class User(models.Model):
     firebase_uid = models.CharField(max_length=128, unique=True, blank=True)
     user_id = models.CharField(max_length=8, unique=True, blank=True)  # 施設で運用するID
     facility = models.ForeignKey(Facility, on_delete=models.CASCADE)
-    password_hash = models.CharField(max_length=255)
     user_name = models.CharField(max_length=10)
     user_name_kana = models.CharField(max_length=20)
     user_birthday = models.DateField()
@@ -87,7 +89,6 @@ class Staff(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     firebase_uid = models.CharField(max_length=128, unique=True, blank=True)
     staff_id = models.CharField(max_length=6, unique=True, blank=True)  # 施設で運用するID
-    password_hash = models.CharField(max_length=255)
     facility = models.ForeignKey(Facility, related_name='staffs', on_delete=models.CASCADE)
     staff_name = models.CharField(max_length=10)
     staff_name_kana = models.CharField(max_length=20)
