@@ -1,4 +1,3 @@
-# テーブル更新
 from django.db import models
 from django.db import transaction
 from django.core.validators import EmailValidator
@@ -129,10 +128,10 @@ class StaffCounter(models.Model):
 
 class ContactNote(models.Model):
     id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='user_id')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='uuid')
     date = models.DateField()
     detail = models.TextField()
-    staff = models.ForeignKey(Staff, on_delete=models.CASCADE, to_field='staff_id')
+    staff = models.ForeignKey(Staff, on_delete=models.CASCADE, to_field='uuid')
     is_confirmed = models.BooleanField(default=False)
     
     def __str__(self):
@@ -140,7 +139,7 @@ class ContactNote(models.Model):
 
 class CareRecord(models.Model):
     id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='user_id')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='uuid')
     date = models.DateField()
     meal = models.CharField(max_length=50)
     excretion = models.CharField(max_length=50)
@@ -149,14 +148,14 @@ class CareRecord(models.Model):
     systolic_bp = models.IntegerField(null=True)
     diastolic_bp = models.IntegerField(null=True)
     comments = models.TextField(null=True)
-    staff = models.ForeignKey(Staff, on_delete=models.CASCADE, to_field='staff_id')
+    staff = models.ForeignKey(Staff, on_delete=models.CASCADE, to_field='uuid')
     
     def __str__(self):
         return f"{self.user} - {self.date}"
 
 class MedicalRecord(models.Model):
     id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='user_id')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='uuid')
     date = models.DateField()
     medical_facility_name = models.CharField(max_length=255)
     type = models.CharField(max_length=50)
