@@ -58,7 +58,20 @@ def update_contact_note(request, id):
             serializer.save()
             return Response(serializer.data)
         else:
-            print(serializer.errors)  # エラーをログに出力
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     except ContactNote.DoesNotExist:
-        return Response({"error": "Contact note not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"error": "コンタクトノートが見つかりません"}, status=status.HTTP_404_NOT_FOUND)
+    
+@api_view(['PATCH'])
+def update_contact_note_status(request, id):
+    try:
+        contact_note = ContactNote.objects.get(id=id)
+        
+        # リクエストデータからis_confirmedを更新
+        contact_note.is_confirmed = request.data.get('is_confirmed', contact_note.is_confirmed)
+        contact_note.save()
+        
+        serializer = ContactNoteSerializer(contact_note)
+        return Response(serializer.data)
+    except ContactNote.DoesNotExist:
+        return Response({"error": "コンタクトノートが見つかりません"}, status=status.HTTP_404_NOT_FOUND)

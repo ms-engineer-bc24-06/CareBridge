@@ -11,11 +11,11 @@ type CareRecord = {
 };
 
 const CareRecordsPage = () => {
-  const userUuid = "b61da427-3ad3-4c41-b268-00a2837cd4b9"; // ベタ打ちのユーザーUUID
-  const [careRecords, setCareRecords] = useState<CareRecord[]>([]); // ケア記録データの状態変数
+  const userUuid = "8bc5f8c4-b529-47eb-bf7e-c2f3584cc035"; // ベタ打ちのユーザーUUID
+  const [careRecords, setCareRecords] = useState<CareRecord[]>([]); // 全てのケア記録データ
   const [filteredCareRecords, setFilteredCareRecords] = useState<CareRecord[]>(
     []
-  );
+  ); // 選択された年・月に基づいてフィルタリングされたケア記録データ
   const [selectedYear, setSelectedYear] = useState<number>(
     new Date().getFullYear()
   ); // 選択された年
@@ -23,30 +23,37 @@ const CareRecordsPage = () => {
     new Date().getMonth() + 1
   ); // 選択された月
 
+  // 初回レンダリング時にケア記録を取得
   useEffect(() => {
     fetchCareRecords(userUuid);
   }, [userUuid]);
 
+  // 年または月が選択されたとき、ケア記録をフィルタリング
   useEffect(() => {
     filterCareRecords();
   }, [selectedYear, selectedMonth, careRecords]);
 
+  // APIからケア記録を取得する関数
   const fetchCareRecords = async (userUuid: string) => {
     try {
+      // 指定されたユーザーUUIDに基づいてケア記録を取得
       const response = await axios.get<CareRecord[]>(
         `http://localhost:8000/api/care-records/${userUuid}/`
       );
 
+      // 日付でソート（新しい順）
       const sortedRecords = response.data.sort(
         (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
       );
 
+      // ソートされたケア記録を状態にセット
       setCareRecords(sortedRecords);
     } catch (error) {
       console.error("ケアデータの取得中にエラーが発生しました");
     }
   };
 
+  // ケア記録を選択された年と月でフィルタリングする関数
   const filterCareRecords = () => {
     const filtered = careRecords.filter((record) => {
       const recordDate = new Date(record.date);
@@ -58,6 +65,7 @@ const CareRecordsPage = () => {
     setFilteredCareRecords(filtered);
   };
 
+  // 日付のフォーマットをMM/DD形式にする関数
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const month = date.getMonth() + 1;
@@ -65,18 +73,23 @@ const CareRecordsPage = () => {
     return `${month}/${day}`;
   };
 
+  // 過去5年間の年のリストを生成
   const years = Array.from(
     new Array(5),
     (val, index) => new Date().getFullYear() - index
   );
 
+  // 1月から12月までの月のリストを生成
   const months = Array.from({ length: 12 }, (v, k) => k + 1);
 
   return (
     <div className="p-6 min-h-screen">
+      {/* 戻るボタン */}
       <Link href="/user/top">
         <button className="text-blue-800 mb-4">←戻る</button>
       </Link>
+
+      {/* 年と月の選択 */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center">
           <label className="mr-2">年</label>
@@ -105,6 +118,8 @@ const CareRecordsPage = () => {
           </select>
         </div>
       </div>
+
+      {/* ケア記録のテーブル表示 */}
       <table className="min-w-full bg-white shadow rounded-lg">
         <thead>
           <tr>
