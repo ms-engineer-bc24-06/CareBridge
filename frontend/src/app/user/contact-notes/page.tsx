@@ -9,7 +9,7 @@ type ContactNote = {
   date: string;
   detail: string;
   staff: number;
-  is_confirmed: boolean;
+  is_confirmed: boolean; // 連絡事項が確認済みかどうか
 };
 
 const ContactNotesPage = () => {
@@ -22,6 +22,7 @@ const ContactNotesPage = () => {
     fetchContactNotes(userUuid);
   }, [userUuid]);
 
+  // APIから連絡事項を取得する関数
   const fetchContactNotes = async (userUuid: string) => {
     try {
       const response = await axios.get<ContactNote[]>(
@@ -36,6 +37,14 @@ const ContactNotesPage = () => {
     } catch (error) {
       console.error("連絡事項の取得中にエラーが発生しました", error);
     }
+  };
+
+  // 日付を MM/DD 形式でフォーマットする関数
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    return `${month}/${day}`;
   };
 
   // ページネーションの計算
@@ -59,15 +68,32 @@ const ContactNotesPage = () => {
         <table className="min-w-full">
           <thead>
             <tr>
-              <th className="py-2 px-3 border-b">日付</th>
-              <th className="py-2 px-3 border-b">連絡内容</th>
+              <th
+                className="text-sm md:text-base py-2 px-3 border-b"
+                style={{ whiteSpace: "nowrap" }} // テキストが縦書きにならないように
+              >
+                日付
+              </th>
+              <th
+                className="text-sm md:text-base py-2 px-3 border-b"
+                style={{ whiteSpace: "nowrap" }} // テキストが縦書きにならないように
+              >
+                連絡内容
+              </th>
+              <th
+                className="text-sm md:text-base py-2 px-3 border-b"
+                style={{ whiteSpace: "nowrap" }} // テキストが縦書きにならないように
+              >
+                確認
+              </th>{" "}
+              {/* 確認欄を追加 */}
             </tr>
           </thead>
           <tbody>
             {currentItems.map((note) => (
               <tr key={note.id}>
                 <td className="py-2 px-3 border-b md:text-base text-sm">
-                  {note.date}
+                  {formatDate(note.date)} {/* 日付をMM/DD形式で表示 */}
                 </td>
                 <td className="py-2 px-3 border-b md:text-base text-sm">
                   <Link href={`/user/contact-notes/${note.id}`}>
@@ -75,6 +101,10 @@ const ContactNotesPage = () => {
                       {note.detail}
                     </div>
                   </Link>
+                </td>
+                <td className="py-2 px-3 border-b md:text-base text-sm">
+                  {note.is_confirmed ? "済" : "未"}{" "}
+                  {/* 確認済みかどうかを表示 */}
                 </td>
               </tr>
             ))}
