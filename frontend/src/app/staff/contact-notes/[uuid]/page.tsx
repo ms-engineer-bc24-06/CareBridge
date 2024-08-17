@@ -65,7 +65,13 @@ const ContactNotesPage = () => {
       const response = await axios.get<ContactNote[]>(
         `http://localhost:8000/api/contact-notes/${userUuid}/`
       );
-      setContactNotes(response.data); // 取得した連絡ノートをセット
+
+      // 日付でソートして新しい順に並べ替える
+      const sortedNotes = response.data.sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+
+      setContactNotes(sortedNotes); // ソート後の連絡ノートをセット
       setLoading(false); // ローディング完了
     } catch (error) {
       console.error("連絡事項の取得中にエラーが発生しました");
