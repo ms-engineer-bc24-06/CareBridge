@@ -9,17 +9,19 @@ type ContactNote = {
   date: string;
   detail: string;
   staff: number;
-  is_confirmed: boolean;
+  is_confirmed: boolean; // 連絡事項が確認済みかどうか
 };
 
 const UserTop = () => {
-  const userUuid = "b61da427-3ad3-4c41-b268-00a2837cd4b9"; // ベタ打ちのユーザーUUID
-  const [contactNotes, setContactNotes] = useState<ContactNote[]>([]);
+  const userUuid = "8bc5f8c4-b529-47eb-bf7e-c2f3584cc035"; // ベタ打ちのユーザーUUID
+  const [contactNotes, setContactNotes] = useState<ContactNote[]>([]); // 連絡事項の状態変数
 
+  // 初回レンダリング時に連絡事項を取得
   useEffect(() => {
     fetchContactNotes(userUuid);
   }, [userUuid]);
 
+  // APIから連絡事項を取得する関数
   const fetchContactNotes = async (userUuid: string) => {
     try {
       const response = await axios.get<ContactNote[]>(
@@ -31,10 +33,19 @@ const UserTop = () => {
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .slice(0, 4);
 
+      // 状態変数にソートされたデータをセット
       setContactNotes(sortedNotes);
     } catch (error) {
       console.error("連絡事項の取得中にエラーが発生しました");
     }
+  };
+
+  // 日付のフォーマットをMM/DD形式にする関数
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    return `${month}/${day}`;
   };
 
   return (
@@ -45,22 +56,42 @@ const UserTop = () => {
           <table className="min-w-full">
             <thead>
               <tr>
-                <th className="py-2 px-3 border-b">日付</th>
-                <th className="py-2 px-3 border-b">連絡内容</th>
+                <th
+                  className="text-sm md:text-base py-2 px-3 border-b"
+                  style={{ whiteSpace: "nowrap" }} // テキストが縦書きにならないように
+                >
+                  日付
+                </th>
+                <th
+                  className="text-sm md:text-base py-2 px-3 border-b"
+                  style={{ whiteSpace: "nowrap" }} // テキストが縦書きにならないように
+                >
+                  連絡内容
+                </th>
+                <th
+                  className="text-sm md:text-base py-2 px-3 border-b"
+                  style={{ whiteSpace: "nowrap" }} // テキストが縦書きにならないように
+                >
+                  確認
+                </th>
               </tr>
             </thead>
             <tbody>
               {contactNotes.map((note) => (
                 <tr key={note.id}>
                   <td className="py-2 px-3 border-b md:text-base text-sm">
-                    {note.date}
+                    {formatDate(note.date)} {/* 日付をMM/DD形式で表示 */}
                   </td>
                   <td className="py-2 px-3 border-b md:text-base text-sm">
                     <Link href={`/user/contact-notes/${note.id}`}>
                       <div className="line-clamp-2 text-blue-600 hover:underline">
-                        {note.detail}
+                        {note.detail} {/* 連絡事項の詳細を表示 */}
                       </div>
                     </Link>
+                  </td>
+                  <td className="py-2 px-3 border-b md:text-base text-sm">
+                    {note.is_confirmed ? "済" : "未"}{" "}
+                    {/* 確認済みかどうかを表示 */}
                   </td>
                 </tr>
               ))}

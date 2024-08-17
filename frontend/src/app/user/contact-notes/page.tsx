@@ -13,7 +13,7 @@ type ContactNote = {
 };
 
 const ContactNotesPage = () => {
-  const userUuid = "b61da427-3ad3-4c41-b268-00a2837cd4b9"; // ベタ打ちのユーザーUUID
+  const userUuid = "8bc5f8c4-b529-47eb-bf7e-c2f3584cc035"; // ベタ打ちのユーザーUUID
   const [contactNotes, setContactNotes] = useState<ContactNote[]>([]); // 連絡事項データ
   const [currentPage, setCurrentPage] = useState<number>(1); // 現在のページ
   const itemsPerPage = 6; // 1ページあたりのアイテム数

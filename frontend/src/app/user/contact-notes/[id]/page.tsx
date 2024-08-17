@@ -11,47 +11,59 @@ type ContactNote = {
   detail: string;
   staff: number;
   status: string;
+  is_confirmed: boolean;
 };
 
 const ContactNoteDetailPage = () => {
   const { id } = useParams(); // URLパラメータからIDを取得
-  const [note, setNote] = useState<ContactNote | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [note, setNote] = useState<ContactNote | null>(null); // 連絡事項の詳細データを管理する状態
+  const [loading, setLoading] = useState(true); // ローディング状態を管理
 
+  // 初回レンダリング時に連絡事項の詳細を取得
   useEffect(() => {
     fetchContactNote();
   }, [id]);
 
+  // APIから連絡事項の詳細を取得する関数
   const fetchContactNote = async () => {
     try {
       const response = await axios.get<ContactNote>(
         `http://localhost:8000/api/contact-note/${id}/`
       );
-      setNote(response.data);
-      setLoading(false);
+      setNote(response.data); // 取得したデータを状態にセット
+      setLoading(false); // ローディング完了
     } catch (error) {
       console.error("連絡事項の取得中にエラーが発生しました");
-      setLoading(false);
+      setLoading(false); // エラーが発生してもローディングを終了
     }
   };
 
+  // 連絡事項を確認済みにする関数
   const handleConfirm = async () => {
     try {
       await axios.patch(
-        `http://localhost:8000/api/contact-note/${id}/update-status/`
+        `http://localhost:8000/api/contact-note/${id}/update-status/`,
+        { is_confirmed: true }
       );
-      setNote({ ...note, status: "確認済み" } as ContactNote);
+      // 更新後の状態を反映
+      setNote({
+        ...note,
+        is_confirmed: true,
+        status: "確認済み",
+      } as ContactNote);
     } catch (error) {
       console.error("連絡事項の更新中にエラーが発生しました");
     }
   };
 
+  // データがロード中の場合の処理
   if (loading) {
     return <div>Loading...</div>;
   }
 
   return (
     <div className="p-6 min-h-screen">
+      {/* 戻るボタン */}
       <Link href="/user/top">
         <button className="text-blue-800 mb-4">← 戻る</button>
       </Link>
@@ -61,7 +73,8 @@ const ContactNoteDetailPage = () => {
           <p className="text-gray-600">日付: {note.date}</p>
           <p className="text-gray-600 mt-2">連絡内容:</p>
           <p className="mt-1">{note.detail}</p>
-          {note.status === "未確認" ? (
+          {/* is_confirmed が false の場合に確認ボタンを表示 */}
+          {!note.is_confirmed ? (
             <button
               onClick={handleConfirm}
               className="mt-4 bg-accent text-white px-4 py-2 rounded"

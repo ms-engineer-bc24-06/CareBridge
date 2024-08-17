@@ -7,7 +7,7 @@ import Link from "next/link";
 
 const UserDashboard = () => {
   // ベタ打ちのUUIDを使用
-  const userUuid = "b61da427-3ad3-4c41-b268-00a2837cd4b9";
+  const userUuid = "8bc5f8c4-b529-47eb-bf7e-c2f3584cc035";
 
   return (
     <div className="p-6 min-h-screen">
