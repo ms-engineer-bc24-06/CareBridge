@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Link from "next/link";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 type ContactNote = {
   id: number;
@@ -13,16 +14,36 @@ type ContactNote = {
 };
 
 const ContactNotesPage = () => {
-  const userUuid = "8bc5f8c4-b529-47eb-bf7e-c2f3584cc035"; // ベタ打ちのユーザーUUID
   const [contactNotes, setContactNotes] = useState<ContactNote[]>([]); // 連絡事項データ
   const [currentPage, setCurrentPage] = useState<number>(1); // 現在のページ
+  const [userUuid, setUserUuid] = useState<string | null>(null); // UUIDを保存する状態変数
   const itemsPerPage = 6; // 1ページあたりのアイテム数
 
+  // Firebase から UID を取得し、その UID に基づいた UUID を取得する
   useEffect(() => {
-    fetchContactNotes(userUuid);
+    const auth = getAuth();
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          const response = await axios.get<{ uuid: string }>(
+            `http://localhost:8000/api/users/firebase/${user.uid}/`
+          );
+          setUserUuid(response.data.uuid); // UUID を状態に保存
+        } catch (error) {
+          console.error("UUID の取得中にエラーが発生しました");
+        }
+      }
+    });
+  }, []);
+
+  // UUID が取得できたら連絡事項を取得
+  useEffect(() => {
+    if (userUuid) {
+      fetchContactNotes(userUuid);
+    }
   }, [userUuid]);
 
-  // APIから連絡事項を取得する関数
+  // API から連絡事項を取得する関数
   const fetchContactNotes = async (userUuid: string) => {
     try {
       const response = await axios.get<ContactNote[]>(
@@ -35,7 +56,7 @@ const ContactNotesPage = () => {
       );
       setContactNotes(sortedNotes);
     } catch (error) {
-      console.error("連絡事項の取得中にエラーが発生しました", error);
+      console.error("連絡事項の取得中にエラーが発生しました");
     }
   };
 
@@ -68,25 +89,11 @@ const ContactNotesPage = () => {
         <table className="min-w-full">
           <thead>
             <tr>
-              <th
-                className="text-sm md:text-base py-2 px-3 border-b"
-                style={{ whiteSpace: "nowrap" }} // テキストが縦書きにならないように
-              >
-                日付
-              </th>
-              <th
-                className="text-sm md:text-base py-2 px-3 border-b"
-                style={{ whiteSpace: "nowrap" }} // テキストが縦書きにならないように
-              >
+              <th className="text-sm md:text-base py-2 px-3 border-b">日付</th>
+              <th className="text-sm md:text-base py-2 px-3 border-b">
                 連絡内容
               </th>
-              <th
-                className="text-sm md:text-base py-2 px-3 border-b"
-                style={{ whiteSpace: "nowrap" }} // テキストが縦書きにならないように
-              >
-                確認
-              </th>{" "}
-              {/* 確認欄を追加 */}
+              <th className="text-sm md:text-base py-2 px-3 border-b">確認</th>
             </tr>
           </thead>
           <tbody>
