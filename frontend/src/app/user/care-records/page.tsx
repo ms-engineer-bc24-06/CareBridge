@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Link from "next/link";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 type CareRecord = {
   care_record_id: number;
@@ -11,7 +12,7 @@ type CareRecord = {
 };
 
 const CareRecordsPage = () => {
-  const userUuid = "8bc5f8c4-b529-47eb-bf7e-c2f3584cc035"; // ベタ打ちのユーザーUUID
+  const [userUuid, setUserUuid] = useState<string | null>(null); // UUIDを保存する状態変数
   const [careRecords, setCareRecords] = useState<CareRecord[]>([]); // 全てのケア記録データ
   const [filteredCareRecords, setFilteredCareRecords] = useState<CareRecord[]>(
     []
@@ -23,20 +24,34 @@ const CareRecordsPage = () => {
     new Date().getMonth() + 1
   ); // 選択された月
 
-  // 初回レンダリング時にケア記録を取得
+  // FirebaseからUIDを取得し、それに基づいてUUIDを取得
   useEffect(() => {
-    fetchCareRecords(userUuid);
-  }, [userUuid]);
+    const auth = getAuth();
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          // Firebase UIDを使ってUUIDを取得
+          const response = await axios.get<{ uuid: string }>(
+            `http://localhost:8000/api/users/firebase/${user.uid}/`
+          );
+          setUserUuid(response.data.uuid);
+        } catch (error) {
+          console.error("UUIDの取得中にエラーが発生しました");
+        }
+      }
+    });
+  }, []);
 
-  // 年または月が選択されたとき、ケア記録をフィルタリング
+  // UUIDが取得できたらケア記録を取得
   useEffect(() => {
-    filterCareRecords();
-  }, [selectedYear, selectedMonth, careRecords]);
+    if (userUuid) {
+      fetchCareRecords(userUuid);
+    }
+  }, [userUuid]);
 
   // APIからケア記録を取得する関数
   const fetchCareRecords = async (userUuid: string) => {
     try {
-      // 指定されたユーザーUUIDに基づいてケア記録を取得
       const response = await axios.get<CareRecord[]>(
         `http://localhost:8000/api/care-records/${userUuid}/`
       );
@@ -64,6 +79,11 @@ const CareRecordsPage = () => {
     });
     setFilteredCareRecords(filtered);
   };
+
+  // 年または月が選択されたとき、ケア記録をフィルタリング
+  useEffect(() => {
+    filterCareRecords();
+  }, [selectedYear, selectedMonth, careRecords]);
 
   // 日付のフォーマットをMM/DD形式にする関数
   const formatDate = (dateString: string) => {
@@ -120,31 +140,35 @@ const CareRecordsPage = () => {
       </div>
 
       {/* ケア記録のテーブル表示 */}
-      <table className="min-w-full bg-white shadow rounded-lg">
-        <thead>
-          <tr>
-            <th className="py-2 px-3 border-b">日付</th>
-            <th className="py-2 px-3 border-b">コメント</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredCareRecords.map((record) => (
-            <tr key={record.care_record_id}>
-              <td className="py-2 px-3 border-b md:text-base text-sm">
-                {formatDate(record.date)}
-              </td>
-              <td className="py-2 px-3 border-b md:text-base text-sm">
-                <Link
-                  href={`/user/care-records/${record.care_record_id}`}
-                  className="text-blue-600 underline"
-                >
-                  <div className="line-clamp-1">{record.comments}</div>
-                </Link>
-              </td>
+      {userUuid ? (
+        <table className="min-w-full bg-white shadow rounded-lg">
+          <thead>
+            <tr>
+              <th className="py-2 px-3 border-b">日付</th>
+              <th className="py-2 px-3 border-b">コメント</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {filteredCareRecords.map((record) => (
+              <tr key={record.care_record_id}>
+                <td className="py-2 px-3 border-b md:text-base text-sm">
+                  {formatDate(record.date)}
+                </td>
+                <td className="py-2 px-3 border-b md:text-base text-sm">
+                  <Link
+                    href={`/user/care-records/${record.care_record_id}`}
+                    className="text-blue-600 underline"
+                  >
+                    <div className="line-clamp-1">{record.comments}</div>
+                  </Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <p>ロード中...</p>
+      )}
     </div>
   );
 };

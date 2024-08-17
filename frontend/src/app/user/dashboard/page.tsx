@@ -1,13 +1,32 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import DashboardChart from "../../../components/dashboardChart";
 import UserInfo from "../../../components/userInfo";
 import Link from "next/link";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import axios from "axios";
 
 const UserDashboard = () => {
-  // ベタ打ちのUUIDを使用
-  const userUuid = "8bc5f8c4-b529-47eb-bf7e-c2f3584cc035";
+  const [userUuid, setUserUuid] = useState<string | null>(null); // UUIDを保存する状態変数
+
+  // Firebase から UID を取得し、その UID に基づいた UUID を取得する
+  useEffect(() => {
+    const auth = getAuth();
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          // Firebase UIDを使ってUUIDを取得
+          const response = await axios.get<{ uuid: string }>(
+            `http://localhost:8000/api/users/firebase/${user.uid}/`
+          );
+          setUserUuid(response.data.uuid); // UUID を状態に保存
+        } catch (error) {
+          console.error("UUID の取得中にエラーが発生しました");
+        }
+      }
+    });
+  }, []);
 
   return (
     <div className="p-6 min-h-screen">
@@ -18,11 +37,18 @@ const UserDashboard = () => {
         ユーザーダッシュボード
       </h1>
 
-      {/* ユーザー情報の表示 */}
-      <UserInfo userUuid={userUuid} />
+      {/* UUIDが取得できている場合にのみコンポーネントを表示 */}
+      {userUuid ? (
+        <>
+          {/* ユーザー情報の表示 */}
+          <UserInfo userUuid={userUuid} />
 
-      {/* ダッシュボードチャートの表示 */}
-      <DashboardChart userUuid={userUuid} />
+          {/* ダッシュボードチャートの表示 */}
+          <DashboardChart userUuid={userUuid} />
+        </>
+      ) : (
+        <p>ロード中...</p>
+      )}
     </div>
   );
 };

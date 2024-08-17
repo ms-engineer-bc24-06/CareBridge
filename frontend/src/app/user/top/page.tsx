@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Link from "next/link";
+import { getAuth, onAuthStateChanged } from "firebase/auth"; // Firebase Auth をインポート
 
 type ContactNote = {
   id: number;
@@ -13,12 +14,32 @@ type ContactNote = {
 };
 
 const UserTop = () => {
-  const userUuid = "8bc5f8c4-b529-47eb-bf7e-c2f3584cc035"; // ベタ打ちのユーザーUUID
   const [contactNotes, setContactNotes] = useState<ContactNote[]>([]); // 連絡事項の状態変数
+  const [userUuid, setUserUuid] = useState<string | null>(null); // UUIDを保存する状態変数
 
-  // 初回レンダリング時に連絡事項を取得
+  // 初回レンダリング時にFirebaseからUIDを取得し、UUIDを取得する
   useEffect(() => {
-    fetchContactNotes(userUuid);
+    const auth = getAuth();
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          // Firebase UIDを使ってUUIDを取得
+          const response = await axios.get<{ uuid: string }>(
+            `http://localhost:8000/api/users/firebase/${user.uid}/`
+          );
+          setUserUuid(response.data.uuid);
+        } catch (error) {
+          console.error("UUIDの取得中にエラーが発生しました", error);
+        }
+      }
+    });
+  }, []);
+
+  // UUIDが取得できたら連絡事項を取得
+  useEffect(() => {
+    if (userUuid) {
+      fetchContactNotes(userUuid);
+    }
   }, [userUuid]);
 
   // APIから連絡事項を取得する関数
