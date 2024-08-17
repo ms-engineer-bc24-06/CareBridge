@@ -1,9 +1,9 @@
 from django.urls import path
-from .views import get_contact_notes, get_user_contact_notes, get_contact_note_by_id, update_contact_note_status
+from . import views
 
 urlpatterns = [
-    path('contact-notes/', get_contact_notes),
-    path('contact-notes/<uuid:uuid>/', get_user_contact_notes, name='get_user_contact_notes'),
-    path('contact-note/<int:id>/', get_contact_note_by_id, name='get_contact_note_by_id'),  # IDで取得
-    path('contact-note/<int:id>/update-status/', update_contact_note_status, name='update_contact_note_status'),  # ステータス更新
+    path('contact-notes/<uuid:uuid>/', views.get_contact_notes_by_user, name='get_contact_notes_by_user'),
+    path('contact-note/<int:id>/', views.get_contact_note_detail, name='get_contact_note_detail'),
+    path('contact-note/<int:id>/update/', views.update_contact_note, name='update_contact_note'),  # 更新用のエンドポイント
+    path('contact-note/', views.create_contact_note, name='create_contact_note'),  # 新規登録用エンドポイント
 ]
