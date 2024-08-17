@@ -11,6 +11,10 @@ COPY requirements.txt .
 # 依存関係をインストール
 RUN pip install --no-cache-dir -r requirements.txt
 
+# serviceAccountKey.json をコピー
+COPY serviceAccountKey.json /app/serviceAccountKey.json
+
+
 # 残りのアプリケーションコードをコピー
 COPY ./carebridge /app/carebridge
 

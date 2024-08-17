@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+import firebase_admin
+from firebase_admin import credentials
 
 # .envファイルを読み込み
 load_dotenv()
@@ -13,6 +15,9 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '0.0.0.0,localhost,127.0.0.1').split(',')
 
+# Firebase Admin SDK の初期化
+cred = credentials.Certificate('/app/serviceAccountKey.json')
+firebase_admin.initialize_app(cred)
 
 # Application definition
 INSTALLED_APPS = [
@@ -74,6 +79,17 @@ DATABASES = {
         'PORT': os.getenv('DB_PORT'),
     }
 }
+
+# CORSとCSRF設定の追加
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:3000',
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:3000',
+]
+
+CORS_ALLOW_CREDENTIALS = True
 
 
 # Password validation

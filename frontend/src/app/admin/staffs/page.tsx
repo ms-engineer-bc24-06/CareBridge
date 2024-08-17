@@ -1,29 +1,43 @@
+// フロントエンドで職員の情報を収集し、その情報をバックエンド（Django）に送信し、バックエンドがFirebase Admin SDKを使用してFirebaseに新しいユーザーを作成する
+// APIキーやその他の認証情報はサーバー側で安全に管理されます。セキュリティが向上します。
 "use client";
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../../lib/firebaseConfig";
 
 interface Staff {
   id?: number;  
-  user_id: string; // メールアドレスのフィールド
-  password_hash: string;  
+  user_id: string;
+  password: string;
   facility: number;  
   staff_name: string;  
   is_admin: boolean;  
 }
 
+// CSRFトークンを取得する関数
+const getCsrfToken = (): string | null => {
+  const csrfTokenMeta = document.querySelector('meta[name="csrf-token"]');
+  return csrfTokenMeta ? csrfTokenMeta.getAttribute('content') : null;
+};
+
+// 必須項目ラベルの表示関数
+const renderRequiredLabel = () => (
+  <span style={{ color: 'red' }}>*</span>
+);
+
 const StaffsManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');  
   const [staffs, setStaffs] = useState<Staff[]>([]);  
   const [filteredStaffs, setFilteredStaffs] = useState<Staff[]>([]);  
-  const [newStaff, setNewStaff] = useState<Staff>({  
-    user_id: '',  // 初期値を設定
-    password_hash: '',
+  const [newStaff, setNewStaff] = useState<Staff>({
+    user_id: '',
+    password: '',
     facility: 1,
     staff_name: '',
     is_admin: false
   });
+  
+  const [confirmPassword, setConfirmPassword] = useState<string>(''); 
+  const [passwordVisible, setPasswordVisible] = useState<boolean>(false); 
   const [editStaff, setEditStaff] = useState<Staff | null>(null);  
   const [showAddForm, setShowAddForm] = useState<boolean>(false);  
   const [errors, setErrors] = useState<{ [key: string]: string }>({});  
@@ -31,6 +45,7 @@ const StaffsManagement: React.FC = () => {
   useEffect(() => {
     fetchStaffs();
   }, []);
+
 
   useEffect(() => {
     if (searchTerm === '') {
@@ -44,6 +59,7 @@ const StaffsManagement: React.FC = () => {
     }
   }, [searchTerm, staffs]);
 
+  // 職員データをサーバーから取得
   const fetchStaffs = async () => {
     try {
       const response = await axios.get<Staff[]>('http://localhost:8000/api/staffs/');
@@ -54,6 +70,7 @@ const StaffsManagement: React.FC = () => {
     }
   };
 
+  // 職員を追加する処理
   const handleAddStaff = async () => {
     const validationErrors = validateForm(newStaff);
     if (Object.keys(validationErrors).length > 0) {
@@ -62,32 +79,48 @@ const StaffsManagement: React.FC = () => {
     }
 
     try {
-        const email = newStaff.user_id; // メールアドレスをそのまま使用
-        const password = newStaff.password_hash; // Firebase用にパスワードを取得
-
-        // Firebaseにユーザーを作成
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        console.log("Firebaseに新しいユーザーが作成されました:", userCredential.user);
-
-        // Firebaseにユーザーが作成されたら、バックエンドにもスタッフ情報を保存
-        const response = await axios.post('http://localhost:8000/api/staffs/', newStaff);
-        setStaffs([...staffs, response.data]);  
-        setFilteredStaffs([...staffs, response.data]);  
-        setNewStaff({
-            user_id: '',
-            password_hash: '',
-            facility: 1,
-            staff_name: '',
-            is_admin: false
+        // 送信するデータをログに出力して確認
+        console.log('Sending data:', {
+            display_name: newStaff.staff_name,
+            email: newStaff.user_id,
+            password: newStaff.password
         });
-        setShowAddForm(false);  
-        setErrors({});
+
+        const csrfToken = getCsrfToken(); 
+        const response = await axios.post('http://localhost:8000/firebaseManagement/create_staff_user/', {
+            display_name: newStaff.staff_name,
+            email: newStaff.user_id,
+            password: newStaff.password
+        }, {
+            headers: {
+                'X-CSRFToken': csrfToken || ''
+            }
+        });
+
+        if (response.status === 200) {
+            console.log("職員が作成されました:", response.data);
+            setStaffs([...staffs, response.data]);
+            setFilteredStaffs([...staffs, response.data]);
+            setNewStaff({
+                user_id: '',
+                password: '',
+                facility: 1,
+                staff_name: '',
+                is_admin: false
+            });
+            setConfirmPassword(''); 
+            setShowAddForm(false);
+            setErrors({});
+        } else {
+            console.error("サーバーでの職員作成に失敗しました", response.data);
+        }
     } catch (error) {
-        console.error("職員の追加中にエラーが発生しました", error);
-        setErrors({ firebase: "Firebaseユーザーの作成に失敗しました" });
+        console.error("サーバーでの職員作成に失敗しました", error);
+        setErrors({ api: "職員の作成に失敗しました。" });
     }
   };
 
+  // 職員を編集する処理
   const handleEditStaff = (id: number) => {
     const staffToEdit = staffs.find(staff => staff.id === id);
     if (staffToEdit) {
@@ -95,6 +128,7 @@ const StaffsManagement: React.FC = () => {
     }
   };
 
+    // 職員を削除する処理
   const handleDeleteStaff = async (id: number) => {
     try {
       await axios.delete(`http://localhost:8000/api/staffs/${id}/`);
@@ -105,6 +139,7 @@ const StaffsManagement: React.FC = () => {
     }
   };
 
+  // 職員情報を更新する処理
   const handleUpdateStaff = async () => {
     const validationErrors = validateForm(editStaff!);
     if (Object.keys(validationErrors).length > 0) {
@@ -123,19 +158,21 @@ const StaffsManagement: React.FC = () => {
     }
   };
 
+  // パスワードの表示/非表示を切り替える処理
+  const togglePasswordVisibility = () => {
+    setPasswordVisible(!passwordVisible);
+  };
+  // フォームのバリデーションを行う処理
   const validateForm = (staff: Staff) => {
     const newErrors: { [key: string]: string } = {};
     if (!staff.staff_name) newErrors.staff_name = '入力必須項目です';
     if (!staff.user_id) newErrors.user_id = '入力必須項目です';
-    if (!staff.password_hash && !editStaff) newErrors.password_hash = '入力必須項目です';
-    if (staff.password_hash.length < 6) newErrors.password_hash = 'パスワードは6文字以上である必要があります';
+    if (!staff.password && !editStaff) newErrors.password = '入力必須項目です';
+    if (staff.password.length < 6) newErrors.password = 'パスワードは6文字以上である必要があります';
+    if (staff.password !== confirmPassword) newErrors.confirmPassword = 'パスワードが一致しません';
     return newErrors;
   };
-
-  const renderRequiredLabel = () => (
-    <span style={{ color: 'red' }}>*</span>
-  );
-
+  // エラーメッセージを表示する処理
   const renderErrorMessage = (fieldName: string) => {
     if (errors[fieldName]) {
       return <span style={{ color: 'red' }}>{errors[fieldName]}</span>;
@@ -190,7 +227,6 @@ const StaffsManagement: React.FC = () => {
         </tbody>
       </table>
 
-      {/* 職員情報の編集フォーム */}
       {editStaff && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-4xl">
@@ -222,7 +258,6 @@ const StaffsManagement: React.FC = () => {
         </div>
       )}
 
-      {/* 新規職員追加フォーム */}
       {showAddForm && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-4xl">
@@ -249,16 +284,45 @@ const StaffsManagement: React.FC = () => {
             </label>
             <label className="block mb-2">
               パスワード{renderRequiredLabel()}:
-              <input
-                type="password"
-                value={newStaff.password_hash}
-                onChange={(e) => setNewStaff({ ...newStaff, password_hash: e.target.value })}
-                className="border p-2 rounded w-full"
-                minLength={6} // HTMLのバリデーションも追加
-                required
-              />
-              {renderErrorMessage("password_hash")}
+              <div className="relative">
+                <input
+                  type={passwordVisible ? "text" : "password"}
+                  value={newStaff.password}
+                  onChange={(e) => setNewStaff({ ...newStaff, password: e.target.value })}
+                  className="border p-2 rounded w-full"
+                  minLength={6}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={togglePasswordVisibility}
+                  className="absolute right-2 top-2"
+                >
+                  {passwordVisible ? "隠す" : "表示"}
+                </button>
+              </div>
+              {renderErrorMessage("password")}
               <small className="text-gray-500">6文字以上のパスワードを入力してください</small>
+            </label>
+            <label className="block mb-2">
+              パスワードの確認{renderRequiredLabel()}:
+              <div className="relative">
+                <input
+                  type={passwordVisible ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="border p-2 rounded w-full"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={togglePasswordVisibility}
+                  className="absolute right-2 top-2"
+                >
+                  {passwordVisible ? "隠す" : "表示"}
+                </button>
+              </div>
+              {renderErrorMessage("confirmPassword")}
             </label>
             <div className="flex justify-end space-x-2 mt-4">
               <button onClick={handleAddStaff} className="bg-green-500 text-white px-4 py-2 rounded">追加</button>
