@@ -9,7 +9,7 @@ type ContactNote = {
   date: string;
   detail: string;
   staff: number;
-  status: string;
+  is_confirmed: boolean;
 };
 
 const ContactNotesPage = () => {

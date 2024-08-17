@@ -11,8 +11,8 @@ type ContactNote = {
   id: number;
   date: string;
   detail: string;
-  staff: number;
-  status: string;
+  staff: string; // スタッフのUUID（外部キー）
+  is_confirmed: boolean;
 };
 
 type UserDetail = {
@@ -26,16 +26,27 @@ type UserDetail = {
   emergency_contact_phone: string;
 };
 
+type StaffDetail = {
+  uuid: string; // スタッフのUUID（外部キー）
+  staff_id: string; // スタッフのID
+  staff_name: string;
+};
+
 const ContactNotesPage = () => {
-  const params = useParams(); // URLパラメータを取得
-  const uuid = Array.isArray(params.uuid) ? params.uuid[0] : params.uuid; // UUIDが配列の場合に対応
+  const params = useParams();
+  const uuid = Array.isArray(params.uuid) ? params.uuid[0] : params.uuid;
 
-  const [contactNotes, setContactNotes] = useState<ContactNote[]>([]);
-  const [userDetail, setUserDetail] = useState<UserDetail | null>(null); // ユーザー詳細データの状態変数
-  const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false); // モーダルの開閉状態を管理
-  const [selectedNote, setSelectedNote] = useState<ContactNote | null>(null); // 選択された連絡事項を管理
+  // State管理
+  const [contactNotes, setContactNotes] = useState<ContactNote[]>([]); // 連絡ノートのリスト
+  const [userDetail, setUserDetail] = useState<UserDetail | null>(null); // ユーザー詳細情報
+  const [staffDetails, setStaffDetails] = useState<{
+    [key: string]: StaffDetail;
+  }>({});
+  const [loading, setLoading] = useState(true); // ローディング状態
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false); // モーダル表示状態
+  const [selectedNote, setSelectedNote] = useState<ContactNote | null>(null); // 選択された連絡ノート（編集用）
 
+  // 初期ロード時に連絡ノートとユーザー詳細を取得
   useEffect(() => {
     if (uuid) {
       fetchContactNotes(uuid);
@@ -43,14 +54,19 @@ const ContactNotesPage = () => {
     }
   }, [uuid]);
 
-  // 連絡事項を取得する関数
+  // スタッフ情報を取得
+  useEffect(() => {
+    fetchStaffDetails();
+  }, []);
+
+  // 連絡ノートをユーザーIDで取得する関数
   const fetchContactNotes = async (userUuid: string) => {
     try {
       const response = await axios.get<ContactNote[]>(
         `http://localhost:8000/api/contact-notes/${userUuid}/`
       );
-      setContactNotes(response.data);
-      setLoading(false);
+      setContactNotes(response.data); // 取得した連絡ノートをセット
+      setLoading(false); // ローディング完了
     } catch (error) {
       console.error("連絡事項の取得中にエラーが発生しました");
       setLoading(false);
@@ -63,24 +79,47 @@ const ContactNotesPage = () => {
       const response = await axios.get<UserDetail>(
         `http://localhost:8000/api/users/${userUuid}/`
       );
-      setUserDetail(response.data);
+      setUserDetail(response.data); // 取得したユーザー詳細をセット
     } catch (error) {
       console.error("ユーザー詳細の取得中にエラーが発生しました");
     }
   };
 
-  // モーダルを開く関数
+  // スタッフ情報を取得してマッピングを作成する関数
+  const fetchStaffDetails = async () => {
+    try {
+      const response = await axios.get<StaffDetail[]>(
+        `http://localhost:8000/api/staffs/`
+      );
+      const staffMap: { [key: string]: StaffDetail } = {};
+      response.data.forEach((staff) => {
+        staffMap[staff.uuid] = staff;
+      });
+      setStaffDetails(staffMap); // スタッフのUUIDをキーとするマッピングをセット
+    } catch (error) {
+      console.error("スタッフ情報の取得中にエラーが発生しました");
+    }
+  };
+
+  // フォーム送信後にリストを更新する関数
+  const handleFormSubmit = () => {
+    fetchContactNotes(uuid); // 連絡ノートを再取得してリストを更新
+    closeModal(); // モーダルを閉じる
+  };
+
+  // モーダルを開く関数（新規登録または編集用）
   const openModal = (note: ContactNote | null = null) => {
-    setSelectedNote(note); // 選択された連絡事項を設定
-    setIsModalOpen(true);
+    setSelectedNote(note); // 編集対象のノートをセット（新規の場合はnull）
+    setIsModalOpen(true); // モーダルを表示
   };
 
   // モーダルを閉じる関数
   const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedNote(null); // モーダルを閉じたときに選択された連絡事項をリセット
+    setIsModalOpen(false); // モーダルを非表示
+    setSelectedNote(null); // 編集対象をリセット
   };
 
+  // ローディング中の表示
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -115,9 +154,9 @@ const ContactNotesPage = () => {
             <th className="py-2 px-3 border-b">日付</th>
             <th className="py-2 px-3 border-b">連絡内容</th>
             <th className="py-2 px-3 border-b">スタッフID</th>
+            <th className="py-2 px-3 border-b">スタッフ名</th>
             <th className="py-2 px-3 border-b">ステータス</th>
-            <th className="py-2 px-3 border-b">アクション</th>{" "}
-            {/* 新しくアクション列を追加 */}
+            <th className="py-2 px-3 border-b">アクション</th>
           </tr>
         </thead>
         <tbody>
@@ -127,8 +166,16 @@ const ContactNotesPage = () => {
               <td className="py-2 px-3 border-b truncate max-w-xs">
                 {note.detail}
               </td>
-              <td className="py-2 px-3 border-b">{note.staff}</td>
-              <td className="py-2 px-3 border-b">{note.status}</td>
+              {/* スタッフUUIDを元に対応するスタッフIDと名前を表示 */}
+              <td className="py-2 px-3 border-b">
+                {staffDetails[note.staff]?.staff_id || "不明"}
+              </td>
+              <td className="py-2 px-3 border-b">
+                {staffDetails[note.staff]?.staff_name || "不明"}
+              </td>
+              <td className="py-2 px-3 border-b">
+                {note.is_confirmed ? "確認済み" : "未確認"}
+              </td>
               <td className="py-2 px-3 border-b">
                 <button
                   onClick={() => openModal(note)}
@@ -142,12 +189,11 @@ const ContactNotesPage = () => {
         </tbody>
       </table>
 
-      {/* モーダルを呼び出す */}
       <Modal isOpen={isModalOpen} onClose={closeModal}>
         <ContactRegisterForm
-          onClose={closeModal}
+          onClose={handleFormSubmit} // フォーム送信後にリストを更新
           userUuid={uuid}
-          note={selectedNote} // モーダルに選択された連絡事項を渡す
+          note={selectedNote} // 編集の場合に既存ノートを渡す
         />
       </Modal>
     </div>
