@@ -39,3 +39,9 @@ __pycache/
 /backend/env/
 backend/env.bak/
 backend/venv.bak/
+
+# Firebase service account key
+serviceAccountKey.json
+
+# OS-specific files：macOSがディレクトリごとに自動的に作成するもので、プロジェクトに必要のないファイル。
+.DS_Store
