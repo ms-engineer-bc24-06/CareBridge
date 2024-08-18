@@ -138,6 +138,7 @@ const CareRecordsPage = () => {
   const closeModal = () => {
     setIsModalOpen(false); // モーダルを非表示
     setSelectedRecord(null); // 編集対象をリセット
+    fetchCareRecords(userUuid); // モーダル閉じた後にリストを更新
   };
 
   // ローディング中の表示

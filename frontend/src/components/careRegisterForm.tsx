@@ -20,13 +20,58 @@ const CareRegisterForm: React.FC<CareRecordFormProps> = ({ user, onClose }) => {
   const [excretion, setExcretion] = useState("");
   const [bath, setBath] = useState("");
   const [temperature, setTemperature] = useState("");
-  const [systolicBP, setSystolicBP] = useState("");
-  const [diastolicBP, setDiastolicBP] = useState("");
+  const [systolic_bp, setSystolic_bp] = useState(""); // フィールド名を変更
+  const [diastolic_bp, setDiastolic_bp] = useState(""); // フィールド名を変更
   const [comments, setComments] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // 仮のスタッフUUIDを設定する（小林 玲奈さんのUUIDと仮定）
+  const staffUuid = "9fae7d8d-9282-4b8e-b156-14e322944e74";  // スタッフログイン実装後削除
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // 送信ロジック
+
+    // 登録するためのデータを準備
+    const careRecordData = {
+      user: user.uuid,
+      date: date,
+      meal: meal,
+      excretion: excretion,
+      bath: bath,
+      temperature: temperature,
+      systolic_bp: systolic_bp, // 修正されたフィールド名を使用
+      diastolic_bp: diastolic_bp, // 修正されたフィールド名を使用
+      comments: comments,
+      staff: staffUuid, // 仮のスタッフUUIDを送信データに追加、実装後削除！
+    };
+
+    try {
+      // POSTリクエストでデータを送信
+      console.log("送信するデータ:", careRecordData);
+
+      const response = await fetch("http://localhost:8000/api/care-records/create/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(careRecordData),
+      });
+
+      // レスポンスのステータスとデータを確認
+      console.log("レスポンスステータス:", response.status);
+      const data = await response.json();
+      console.log("レスポンスデータ:", data);
+
+      // レスポンスが成功かどうかを判定
+      if (response.ok) {
+        alert("ケア記録が登録されました。");
+        onClose(); // モーダルを閉じる
+      } else {
+        alert("ケア記録の登録に失敗しました。");
+      }
+    } catch (error) {
+      console.error("エラーが発生しました:", error);
+      alert("ケア記録の登録中にエラーが発生しました。");
+    }
   };
 
   return (
@@ -63,8 +108,8 @@ const CareRegisterForm: React.FC<CareRecordFormProps> = ({ user, onClose }) => {
               <label className="block text-gray-700">血圧（最低）</label>
               <input
                 type="text"
-                value={diastolicBP}
-                onChange={(e) => setDiastolicBP(e.target.value)}
+                value={diastolic_bp}  // 修正されたフィールド名を使用
+                onChange={(e) => setDiastolic_bp(e.target.value)}  // 修正されたフィールド名を使用
                 className="border p-2 rounded w-full"
               />
             </div>
@@ -72,8 +117,8 @@ const CareRegisterForm: React.FC<CareRecordFormProps> = ({ user, onClose }) => {
               <label className="block text-gray-700">血圧（最高）</label>
               <input
                 type="text"
-                value={systolicBP}
-                onChange={(e) => setSystolicBP(e.target.value)}
+                value={systolic_bp}  // 修正されたフィールド名を使用
+                onChange={(e) => setSystolic_bp(e.target.value)}  // 修正されたフィールド名を使用
                 className="border p-2 rounded w-full"
               />
             </div>
@@ -137,7 +182,7 @@ const CareRegisterForm: React.FC<CareRecordFormProps> = ({ user, onClose }) => {
               onClick={onClose}
               className="bg-accent text-white px-4 py-2 rounded mr-2"
             >
-              キャンセル
+             キャンセル
             </button>
             <button
               type="submit"

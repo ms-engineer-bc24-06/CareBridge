@@ -1,8 +1,8 @@
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from carebridge.models import CareRecord, User, Staff
 from .serializers import CareRecordSerializer
-from rest_framework import status
 import logging
 
 logger = logging.getLogger(__name__)
@@ -36,29 +36,63 @@ def create_care_record(request):
         # user_uuidを取得
         user = User.objects.get(uuid=request.data.get('user'))
         
-        # staff_idを取得
-        staff = Staff.objects.get(staff_id=request.data.get('staff'))
+        # staff_uuidを取得
+        staff = Staff.objects.get(uuid=request.data.get('staff'))
         
         # 新しいCareRecordオブジェクトを作成
         care_record = CareRecord(
             user=user,
             date=request.data.get('date'),
-            detail=request.data.get('detail'),
-            staff=staff
+            meal=request.data.get('meal'),
+            excretion=request.data.get('excretion'),
+            bath=request.data.get('bath'),
+            temperature=request.data.get('temperature'),
+            systolic_bp=request.data.get('systolic_bp'),
+            diastolic_bp=request.data.get('diastolic_bp'),
+            comments=request.data.get('comments'),
+            staff=staff  # 登録したスタッフを設定
         )
         care_record.save()
 
         serializer = CareRecordSerializer(care_record)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     except User.DoesNotExist:
-        logger.warning(f"User not found: UUID {request.data.get('user')}")
         return Response({"error": "指定されたユーザーが見つかりません"}, status=status.HTTP_404_NOT_FOUND)
     except Staff.DoesNotExist:
-        logger.warning(f"Staff not found: staff_id {request.data.get('staff')}")
         return Response({"error": "指定されたスタッフが見つかりません"}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
-        logger.error(f"Error creating care record: {str(e)}")
+        # 予期しないエラーが発生した場合にエラー内容を返す
         return Response({"error": f"リクエストが不正です: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+    
+# @api_view(['POST'])
+# def create_care_record(request):
+#     try:
+#         # user_uuidを取得
+#         user = User.objects.get(uuid=request.data.get('user'))
+        
+#         # staff_idを取得
+#         staff = Staff.objects.get(staff_id=request.data.get('staff'))
+        
+#         # 新しいCareRecordオブジェクトを作成
+#         care_record = CareRecord(
+#             user=user,
+#             date=request.data.get('date'),
+#             detail=request.data.get('detail'),
+#             staff=staff
+#         )
+#         care_record.save()
+
+#         serializer = CareRecordSerializer(care_record)
+#         return Response(serializer.data, status=status.HTTP_201_CREATED)
+#     except User.DoesNotExist:
+#         logger.warning(f"User not found: UUID {request.data.get('user')}")
+#         return Response({"error": "指定されたユーザーが見つかりません"}, status=status.HTTP_404_NOT_FOUND)
+#     except Staff.DoesNotExist:
+#         logger.warning(f"Staff not found: staff_id {request.data.get('staff')}")
+#         return Response({"error": "指定されたスタッフが見つかりません"}, status=status.HTTP_404_NOT_FOUND)
+#     except Exception as e:
+#         logger.error(f"Error creating care record: {str(e)}")
+#         return Response({"error": f"リクエストが不正です: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # from rest_framework.decorators import api_view
