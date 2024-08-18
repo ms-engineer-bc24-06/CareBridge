@@ -18,7 +18,13 @@ type CareRecord = {
   temperature: number;
   systolic_bp: number;
   diastolic_bp: number;
-  staff: number;
+  staff: string; // スタッフのUUIDに変更
+};
+
+type StaffDetail = {
+  uuid: string;
+  staff_id: string;
+  staff_name: string;
 };
 
 const CareRecordsListPage: React.FC = () => {
@@ -31,10 +37,12 @@ const CareRecordsListPage: React.FC = () => {
   const [careRecords, setCareRecords] = useState<{
     [key: string]: CareRecord[];
   }>({});
+  const [staffDetails, setStaffDetails] = useState<{ [key: string]: StaffDetail }>({});
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
 
   useEffect(() => {
     fetchUsers(); // コンポーネントマウント時にユーザー情報を取得
+    fetchStaffDetails(); // スタッフ情報を取得
   }, []);
 
   const fetchUsers = async () => {
@@ -55,7 +63,6 @@ const CareRecordsListPage: React.FC = () => {
     }
   };
 
-  // ユーザーUUIDに基づいてケア記録をAPIから取得
   const fetchCareRecords = async (userUuid: string) => {
     try {
       const response = await axios.get<CareRecord[]>(
@@ -70,6 +77,22 @@ const CareRecordsListPage: React.FC = () => {
       }));
     } catch (error) {
       console.error("ケア記録の取得中にエラーが発生しました");
+    }
+  };
+
+  // スタッフ情報を取得してマッピングを作成する関数
+  const fetchStaffDetails = async () => {
+    try {
+      const response = await axios.get<StaffDetail[]>(
+        `http://localhost:8000/api/staffs/`
+      );
+      const staffMap: { [key: string]: StaffDetail } = {};
+      response.data.forEach((staff) => {
+        staffMap[staff.uuid] = staff;
+      });
+      setStaffDetails(staffMap); // スタッフのUUIDをキーとするマッピングをセット
+    } catch (error) {
+      console.error("スタッフ情報の取得中にエラーが発生しました");
     }
   };
 
@@ -159,8 +182,7 @@ const CareRecordsListPage: React.FC = () => {
       <table className="min-w-full bg-white shadow rounded-lg">
         <thead>
           <tr>
-            <th className="py-2 px-3 border-b">日付</th>{" "}
-            {/* 日付を一番左に配置 */}
+            <th className="py-2 px-3 border-b">日付</th>
             <th className="py-2 px-3 border-b">利用者ID</th>
             <th className="py-2 px-3 border-b">利用者名</th>
             <th className="py-2 px-3 border-b">食事</th>
@@ -169,15 +191,14 @@ const CareRecordsListPage: React.FC = () => {
             <th className="py-2 px-3 border-b">体温</th>
             <th className="py-2 px-3 border-b">血圧（最高）</th>
             <th className="py-2 px-3 border-b">血圧（最低）</th>
-            <th className="py-2 px-3 border-b">スタッフID</th>
+            <th className="py-2 px-3 border-b">スタッフ名</th>
           </tr>
         </thead>
         <tbody>
           {filteredUsers.map((user) =>
             filterRecordsByDate(careRecords[user.uuid] || []).map((record) => (
               <tr key={`${user.uuid}-${record.date}`}>
-                <td className="py-2 px-3 border-b">{record.date}</td>{" "}
-                {/* 日付の列 */}
+                <td className="py-2 px-3 border-b">{record.date}</td>
                 <td className="py-2 px-3 border-b">{user.user_id}</td>
                 <td className="py-2 px-3 border-b">{user.user_name}</td>
                 <td className="py-2 px-3 border-b">{record.meal}</td>
@@ -186,7 +207,10 @@ const CareRecordsListPage: React.FC = () => {
                 <td className="py-2 px-3 border-b">{record.temperature}</td>
                 <td className="py-2 px-3 border-b">{record.systolic_bp}</td>
                 <td className="py-2 px-3 border-b">{record.diastolic_bp}</td>
-                <td className="py-2 px-3 border-b">{record.staff}</td>
+                {/* スタッフUUIDを元に対応するスタッフ名を表示 */}
+                <td className="py-2 px-3 border-b">
+                  {staffDetails[record.staff]?.staff_name || "不明"}
+                </td>
               </tr>
             ))
           )}
