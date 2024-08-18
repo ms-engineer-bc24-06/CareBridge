@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import axios from "axios";
 import Link from "next/link";
@@ -16,7 +16,7 @@ type CareRecord = {
   systolic_bp: number;
   diastolic_bp: number;
   comments: string;
-  staff: number;
+  staff: string; // スタッフのUUID
 };
 
 type UserDetail = {
@@ -30,24 +30,27 @@ type UserDetail = {
   emergency_contact_phone: string;
 };
 
+type StaffDetail = {
+  uuid: string;
+  staff_id: string;
+  staff_name: string;
+};
+
 const CareRecordsPage = () => {
   const { uuid } = useParams(); // URLパラメータからUUIDを取得
   const userUuid = Array.isArray(uuid) ? uuid[0] : uuid; // UUIDが配列の場合の対応
   const [careRecords, setCareRecords] = useState<CareRecord[]>([]); // ケア記録データの状態変数
-  const [filteredCareRecords, setFilteredCareRecords] = useState<CareRecord[]>(
-    []
-  ); // フィルタされたケア記録データの状態変数
+  const [filteredCareRecords, setFilteredCareRecords] = useState<CareRecord[]>([]); // フィルタされたケア記録データの状態変数
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
   const [userDetail, setUserDetail] = useState<UserDetail | null>(null); // ユーザー詳細データの状態変数
+  const [staffDetails, setStaffDetails] = useState<{ [key: string]: StaffDetail }>({});
   const [loading, setLoading] = useState(true); // ローディング状態を管理する状態変数
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false); // モーダルの開閉状態を管理する状態変数
-  const [selectedYear, setSelectedYear] = useState<number>(
-    new Date().getFullYear()
-  ); // 選択された年
-  const [selectedMonth, setSelectedMonth] = useState<number>(
-    new Date().getMonth() + 1
-  ); // 選択された月
+  const [selectedRecord, setSelectedRecord] = useState<CareRecord | null>(null); // 選択されたケア記録
 
-  // コンポーネントがマウントされたときにケア記録とユーザー詳細を取得
+
+  // 初期ロード時にケア記録とユーザー詳細を取得
   useEffect(() => {
     if (userUuid) {
       fetchCareRecords(userUuid);
@@ -55,10 +58,10 @@ const CareRecordsPage = () => {
     }
   }, [userUuid]);
 
-  // 年と月が選択されたときにケア記録をフィルタ
+  // スタッフ情報を取得してマッピングを作成
   useEffect(() => {
-    filterCareRecords();
-  }, [selectedYear, selectedMonth, careRecords]);
+    fetchStaffDetails();
+  }, []);
 
   // ケア記録をAPIから取得する関数
   const fetchCareRecords = async (userUuid: string) => {
@@ -92,8 +95,24 @@ const CareRecordsPage = () => {
     }
   };
 
+  // スタッフ情報を取得してマッピングを作成する関数
+  const fetchStaffDetails = async () => {
+    try {
+      const response = await axios.get<StaffDetail[]>(
+        `http://localhost:8000/api/staffs/`
+      );
+      const staffMap: { [key: string]: StaffDetail } = {};
+      response.data.forEach((staff) => {
+        staffMap[staff.uuid] = staff;
+      });
+      setStaffDetails(staffMap); // スタッフのUUIDをキーとするマッピングをセット
+    } catch (error) {
+      console.error("スタッフ情報の取得中にエラーが発生しました");
+    }
+  };
+
   // 選択された年と月でケア記録をフィルタする関数
-  const filterCareRecords = () => {
+  const filterCareRecords = useCallback(() => {
     const filtered = careRecords.filter((record) => {
       const recordDate = new Date(record.date);
       return (
@@ -102,16 +121,23 @@ const CareRecordsPage = () => {
       );
     });
     setFilteredCareRecords(filtered);
-  };
+  }, [careRecords, selectedYear, selectedMonth]);
 
-  // モーダルを開く関数
-  const openModal = () => {
-    setIsModalOpen(true);
+  // 年と月が選択されたときにケア記録をフィルタ
+  useEffect(() => {
+    filterCareRecords();
+  }, [filterCareRecords]);  
+
+  // モーダルを開く関数（新規登録または編集用）
+  const openModal = (record: CareRecord | null = null) => {
+    setSelectedRecord(record); // 編集対象のケア記録をセット（新規の場合はnull）
+    setIsModalOpen(true); // モーダルを表示
   };
 
   // モーダルを閉じる関数
   const closeModal = () => {
-    setIsModalOpen(false);
+    setIsModalOpen(false); // モーダルを非表示
+    setSelectedRecord(null); // 編集対象をリセット
   };
 
   // ローディング中の表示
@@ -170,7 +196,7 @@ const CareRecordsPage = () => {
           </div>
         )}
         <button
-          onClick={openModal}
+          onClick={() => openModal()}
           className="bg-secondary text-white px-4 py-2 rounded"
         >
           ケア登録
@@ -187,7 +213,7 @@ const CareRecordsPage = () => {
             <th className="py-2 px-3 border-b">血圧（最低）</th>
             <th className="py-2 px-3 border-b">血圧（最高）</th>
             <th className="py-2 px-3 border-b">コメント</th>
-            <th className="py-2 px-3 border-b">スタッフID</th>
+            <th className="py-2 px-3 border-b">スタッフ名</th>
           </tr>
         </thead>
         <tbody>
@@ -201,7 +227,10 @@ const CareRecordsPage = () => {
               <td className="py-2 px-3 border-b">{record.diastolic_bp}</td>
               <td className="py-2 px-3 border-b">{record.systolic_bp}</td>
               <td className="py-2 px-3 border-b">{record.comments}</td>
-              <td className="py-2 px-3 border-b">{record.staff}</td>
+              {/* スタッフUUIDを元に対応するスタッフ名を表示 */}
+              <td className="py-2 px-3 border-b">
+                {staffDetails[record.staff]?.staff_name || "不明"}
+              </td>
             </tr>
           ))}
         </tbody>
