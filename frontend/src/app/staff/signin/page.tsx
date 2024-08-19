@@ -28,7 +28,7 @@ const SignInPage: React.FC = () => {
     <div
       className="flex flex-col items-center justify-center h-screen bg-cover bg-center p-4"
     >
-      <h1 className="text-4xl mb-12">ログイン</h1>
+      <h1 className="text-4xl mb-12">介護職員ログイン</h1>
       <form onSubmit={handleSignIn} className="w-96 bg-white p-8 rounded-lg shadow-lg"> {/* w-96でフォームの幅を広げる */}
         <div className="mb-6">
           <label htmlFor="email" className="block text-gray-700 text-xl mb-2">メールアドレス</label>
@@ -65,7 +65,7 @@ const SignInPage: React.FC = () => {
         </Link>
       </div>
       <div className="mt-4">
-        <Link href="/privacy-policy" className="text-blue-500 hover:underline">
+        <Link href="/staff/staffPrivacyPolicy" className="text-blue-500 hover:underline">
           carebridge プライバシーポリシー
         </Link>
       </div>
