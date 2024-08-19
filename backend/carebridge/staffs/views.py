@@ -14,7 +14,7 @@ def get_staffs(request):
 @api_view(['GET'])
 def get_staff(request, uuid):
     try:
-        staff = Staff.objects.get(uuid=UUID(uuid))
+        staff = Staff.objects.get(uuid=uuid) # すでにUUIDオブジェクトとして扱われていると仮定 staff = Staff.objects.get(uuid=UUID(uuid))から修正
         serializer = StaffSerializer(staff)
         return Response(serializer.data)
     except Staff.DoesNotExist:
