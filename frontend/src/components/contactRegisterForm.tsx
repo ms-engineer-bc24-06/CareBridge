@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { getAuth } from "firebase/auth";
+import axios from "axios";
 
 type ContactNote = {
   id: number;
@@ -9,9 +11,9 @@ type ContactNote = {
 };
 
 type Staff = {
-  id: string;
   uuid: string;
-  name: string;
+  staff_id: string;
+  staff_name: string;
 };
 
 type ContactRegisterFormProps = {
@@ -30,47 +32,38 @@ const ContactRegisterForm = ({
   const [date, setDate] = useState<string>(
     note ? note.date : new Date().toISOString().split("T")[0]
   );
-  const [staff, setStaff] = useState<string>(note ? note.staff : "");
-  const [staffs, setStaffs] = useState<Staff[]>([]);
-  const [selectedStaffName, setSelectedStaffName] = useState<string>("");
+  const [staffUuid, setStaffUuid] = useState<string>("");
+  const [staffName, setStaffName] = useState<string>("");
 
-  // フォームが読み込まれた際にスタッフリストを取得
+  // Firebaseから現在のユーザーのUIDを取得し、それに基づいてスタッフ情報を取得
   useEffect(() => {
-    if (note) {
-      setDetail(note.detail);
-      setDate(note.date);
-      setStaff(note.staff);
-    }
+    const fetchStaffInfo = async () => {
+      const auth = getAuth();
+      const user = auth.currentUser;
 
-    const fetchStaffs = async () => {
-      try {
-        const response = await fetch("http://localhost:8000/api/staffs/");
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+      if (user) {
+        try {
+          // Firebase UIDを使ってスタッフ情報を取得
+          const response = await axios.get<Staff>(
+            `http://localhost:8000/api/staffs/firebase/${user.uid}/`
+          );
+
+          setStaffUuid(response.data.uuid);
+          setStaffName(response.data.staff_name);
+        } catch (error) {
+          console.error("スタッフ情報の取得中にエラーが発生しました:", error);
         }
-        const data = await response.json();
-        setStaffs(
-          data.map((staff: any) => ({
-            id: staff.staff_id,
-            uuid: staff.uuid,
-            name: staff.staff_name,
-          }))
-        );
-      } catch (error) {
-        console.error("スタッフリストの取得に失敗しました:", error);
       }
     };
 
-    fetchStaffs();
-  }, [note]);
+    fetchStaffInfo();
 
-  // スタッフID選択時に名前を表示するためのハンドラー
-  const handleStaffChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedId = e.target.value;
-    setStaff(selectedId);
-    const selectedStaff = staffs.find((staff) => staff.id === selectedId);
-    setSelectedStaffName(selectedStaff ? selectedStaff.name : "");
-  };
+    if (note) {
+      setDetail(note.detail);
+      setDate(note.date);
+      setStaffUuid(note.staff);
+    }
+  }, [note]);
 
   // フォーム送信時のハンドラー
   const handleSubmit = async (e: React.FormEvent) => {
@@ -80,7 +73,7 @@ const ContactRegisterForm = ({
       user: userUuid,
       date: date,
       detail: detail,
-      staff: staff,
+      staff: staffUuid,
       is_confirmed: false,
     };
 
@@ -88,28 +81,19 @@ const ContactRegisterForm = ({
       let response;
       if (note) {
         // 編集の場合は、更新用のエンドポイントにPUTリクエストを送信
-        response = await fetch(
+        response = await axios.put(
           `http://localhost:8000/api/contact-note/${note.id}/update/`,
-          {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(contactNoteData),
-          }
+          contactNoteData
         );
       } else {
         // 新規作成の場合はPOSTリクエストを送信
-        response = await fetch("http://localhost:8000/api/contact-note/", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(contactNoteData),
-        });
+        response = await axios.post(
+          "http://localhost:8000/api/contact-note/",
+          contactNoteData
+        );
       }
 
-      if (response.ok) {
+      if (response.status === 200 || response.status === 201) {
         alert(
           note ? "連絡ノートが更新されました。" : "連絡ノートが登録されました。"
         );
@@ -151,24 +135,8 @@ const ContactRegisterForm = ({
         />
       </div>
       <div className="mt-4">
-        <label>スタッフID</label>
-        <select
-          value={staff}
-          onChange={handleStaffChange}
-          className="border p-2 rounded w-full"
-        >
-          <option value="">スタッフを選択してください</option>
-          {staffs.map((staff) => (
-            <option key={staff.id} value={staff.id}>
-              {staff.id}
-            </option>
-          ))}
-        </select>
-        {selectedStaffName && (
-          <p className="mt-2 text-gray-700">
-            選択されたスタッフ: {selectedStaffName}
-          </p>
-        )}
+        <label>スタッフ</label>
+        <p className="border p-2 rounded w-full bg-gray-100">{staffName}</p>
       </div>
       <div className="mt-4 flex justify-end">
         <button
