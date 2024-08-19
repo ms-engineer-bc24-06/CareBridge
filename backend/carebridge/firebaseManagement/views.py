@@ -58,3 +58,37 @@ def test_firebase(request):
         })
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+def register_family_member_user(request):
+    try:
+        print("Request received at register_family_member_user")
+        # リクエストデータをJSONとしてパース
+        data = json.loads(request.body)
+
+        # JSONデータから必要なフィールドを取得
+        display_name = data.get('display_name')  # 名前
+        email = data.get('email')                # メールアドレス
+        password = data.get('password')          # パスワード
+
+        # リクエスト内容をログに出力
+        logger.info(f"Received request to create family member user: {display_name}, {email}")
+
+        # Firebaseでユーザー作成
+        user = auth.create_user(
+            email=email,
+            password=password,
+            display_name=display_name,
+            disabled=False
+        )
+
+        # ユーザー作成成功時のログ出力
+        logger.info(f"Family member user created successfully: {user.uid}")
+
+        # 成功レスポンスを返す
+        return JsonResponse({'message': 'Family member user created successfully', 'user_id': user.uid})
+    except Exception as e:
+        # エラー発生時のログ出力
+        logger.error(f"Error creating family member user: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=500)

@@ -202,7 +202,7 @@ const StaffsManagement: React.FC = () => {
             <th className="py-2 px-4 border-b">職員ID</th>
             <th className="py-2 px-4 border-b">職員名</th>
             <th className="py-2 px-4 border-b">管理者権限</th>
-            <th className="py-2 px-4 border-b">操作</th>
+            <th className="py-2 px-4 border-b">アクション</th>
           </tr>
         </thead>
         <tbody>
