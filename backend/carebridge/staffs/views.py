@@ -20,6 +20,15 @@ def get_staff(request, uuid):
     except Staff.DoesNotExist:
         return Response({"message": "職員が見つかりません"}, status=status.HTTP_404_NOT_FOUND)
 
+@api_view(['GET'])
+def get_staff_by_firebase_uid(request, firebase_uid):
+    try:
+        staff = Staff.objects.get(firebase_uid=firebase_uid)  # firebase_uidフィールドに基づいてスタッフを取得
+        serializer = StaffSerializer(staff)
+        return Response(serializer.data)
+    except Staff.DoesNotExist:
+        return Response({"message": "職員が見つかりません"}, status=status.HTTP_404_NOT_FOUND)
+
 @api_view(['POST'])
 def create_staff(request):
     serializer = StaffSerializer(data=request.data)

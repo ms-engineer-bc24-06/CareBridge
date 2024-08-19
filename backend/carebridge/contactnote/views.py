@@ -22,11 +22,14 @@ def get_contact_note_detail(request, id):
 @api_view(['POST'])
 def create_contact_note(request):
     try:
+        # デバッグログ
+        print("Request Data:", request.data)
+
         # user_uuidを取得
         user = User.objects.get(uuid=request.data.get('user'))
         
         # staff_idを取得
-        staff = Staff.objects.get(staff_id=request.data.get('staff'))
+        staff = Staff.objects.get(uuid=request.data.get('staff'))
         
         # 新しいContactNoteオブジェクトを作成
         contact_note = ContactNote(
