@@ -15,28 +15,55 @@ type CareRecord = {
   systolic_bp: number;
   diastolic_bp: number;
   comments: string;
-  staff: number;
+  staff: string; // スタッフのUUID（外部キー）
+};
+
+type StaffDetail = {
+  uuid: string; // スタッフのUUID
+  staff_id: string; // スタッフのID
+  staff_name: string;
 };
 
 const CareRecordDetailPage = () => {
   const { id } = useParams(); // URLパラメータからIDを取得
   const [careRecord, setCareRecord] = useState<CareRecord | null>(null);
+  const [staffDetails, setStaffDetails] = useState<{
+    [key: string]: StaffDetail;
+  }>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchCareRecord();
+    fetchStaffDetails();
   }, [id]);
 
+  // ケア記録を取得する関数
   const fetchCareRecord = async () => {
     try {
       const response = await axios.get<CareRecord>(
-        `http://localhost:8000/api/care-records/${id}/`
+        `http://localhost:8000/api/care-records/detail/${id}/`
       );
       setCareRecord(response.data);
       setLoading(false);
     } catch (error) {
       console.error("ケアデータの取得中にエラーが発生しました");
       setLoading(false);
+    }
+  };
+
+  // スタッフ情報を取得してマッピングを作成する関数
+  const fetchStaffDetails = async () => {
+    try {
+      const response = await axios.get<StaffDetail[]>(
+        `http://localhost:8000/api/staffs/`
+      );
+      const staffMap: { [key: string]: StaffDetail } = {};
+      response.data.forEach((staff) => {
+        staffMap[staff.uuid] = staff;
+      });
+      setStaffDetails(staffMap); // スタッフのUUIDをキーとするマッピングをセット
+    } catch (error) {
+      console.error("スタッフ情報の取得中にエラーが発生しました");
     }
   };
 
@@ -62,7 +89,9 @@ const CareRecordDetailPage = () => {
           </p>
           <p className="text-gray-600 mt-2">コメント:</p>
           <p className="mt-1">{careRecord.comments}</p>
-          <p className="text-gray-600 mt-2">スタッフID: {careRecord.staff}</p>
+          <p className="text-gray-600 mt-2">
+            スタッフ名: {staffDetails[careRecord.staff]?.staff_name || "不明"}
+          </p>
         </div>
       )}
     </div>
