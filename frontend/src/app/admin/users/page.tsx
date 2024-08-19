@@ -1,8 +1,9 @@
 'use client';
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import axios from 'axios';
 import Link from "next/link";
 
+// ユーザー情報の型定義
 interface User {
   uuid: string;
   user_id: string;
@@ -16,26 +17,16 @@ interface User {
   allergies: string | null;
   medications: string | null;
   medical_history: string | null;
+  email?: string; // 新規登録時のみ必要
+  password?: string; // 新規登録時のみ必要
+  confirmPassword?: string; // 新規登録時のみ必要
 }
 
 const UsersManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>(''); 
   const [users, setUsers] = useState<User[]>([]); 
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]); 
-  const [newUser, setNewUser] = useState<User>({
-    uuid: '', 
-    user_id: '',
-    user_name: '',
-    user_name_kana: '',
-    user_sex: '',
-    user_birthday: '',
-    emergency_contact_name: '',
-    emergency_contact_phone: '',
-    emergency_contact_relationship: '',
-    allergies: null,
-    medications: null,
-    medical_history: null,
-  });
+  const [newUser, setNewUser] = useState<User | null>(null);
   const [editUser, setEditUser] = useState<User | null>(null);  
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({}); 
@@ -68,41 +59,54 @@ const UsersManagement: React.FC = () => {
   };
 
   const handleAddUser = async () => {
-    const validationErrors = validateForm(newUser);
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
+    if (newUser) {
+        const validationErrors = validateForm(newUser);
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
+            return;
+        }
 
-    try {
-      const response = await axios.post('http://localhost:8000/api/users/', newUser);
-      setUsers([...users, response.data]); 
-      setFilteredUsers([...users, response.data]); 
-      setNewUser({
-        uuid: '',
-        user_id: '',
-        user_name: '',
-        user_name_kana: '',
-        user_sex: '',
-        user_birthday: '',
-        emergency_contact_name: '',
-        emergency_contact_phone: '',
-        emergency_contact_relationship: '',
-        allergies: null,
-        medications: null,
-        medical_history: null,
-      });
-      setShowAddForm(false); 
-      setErrors({});
-    } catch (error) {
-      console.error("ユーザーの追加中にエラーが発生しました", error);
+        try {
+            // Firebaseにユーザーを登録するリクエストを送信
+            const firebaseResponse = await axios.post('http://localhost:8000/firebaseManagement/register_family_member_user/', {
+                display_name: newUser.user_name,
+                email: newUser.email,
+                password: newUser.password,
+            });
+
+            console.log('Firebase Response:', firebaseResponse.data);
+
+            // Firebaseで取得したUIDを使用して新しいユーザーを作成
+            const userData = {
+                ...newUser,
+                uuid: firebaseResponse.data.user_id,  // FirebaseのUIDを使用
+                user_id: generateCustomUserId(),
+            };
+
+            // ユーザーをデータベースに保存
+            const response = await axios.post('http://localhost:8000/api/users/', userData);
+
+            console.log('Response:', response.data);
+
+            setUsers([...users, response.data]); 
+            setFilteredUsers([...users, response.data]); 
+            setNewUser(null);  
+            setShowAddForm(false);  
+            setErrors({});  
+        } catch (error) {
+            console.error("ユーザーの追加中にエラーが発生しました", error);
+            setErrors({ api: "ユーザーの追加に失敗しました。" });
+        }
     }
+};
+
+
+  const generateCustomUserId = (): string => {
+    return Math.floor(10000000 + Math.random() * 90000000).toString();  
   };
 
   const validateForm = (user: User) => {
     const newErrors: { [key: string]: string } = {};
-
-    if (!user.user_id) newErrors.user_id = '必須項目です';
     if (!user.user_name) newErrors.user_name = '必須項目です';
     if (!user.user_name_kana) newErrors.user_name_kana = '必須項目です';
     if (!user.user_sex) newErrors.user_sex = '必須項目です';
@@ -110,7 +114,11 @@ const UsersManagement: React.FC = () => {
     if (!user.emergency_contact_name) newErrors.emergency_contact_name = '必須項目です';
     if (!user.emergency_contact_phone) newErrors.emergency_contact_phone = '必須項目です';
     if (!user.emergency_contact_relationship) newErrors.emergency_contact_relationship = '必須項目です';
-
+    if (showAddForm) {  // 新規登録時のみチェック
+      if (!user.email) newErrors.email = 'メールアドレスは必須項目です';
+      if (!user.password) newErrors.password = 'パスワードは必須項目です';
+      if (user.password !== user.confirmPassword) newErrors.confirmPassword = 'パスワードが一致しません';
+    }
     return newErrors;
   };
 
@@ -132,32 +140,36 @@ const UsersManagement: React.FC = () => {
   };
 
   const handleUpdateUser = async () => {
-    const validationErrors = validateForm(editUser!);
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
+    if (editUser) {
+      const validationErrors = validateForm(editUser);
+      if (Object.keys(validationErrors).length > 0) {
+        setErrors(validationErrors);
+        return;
+      }
 
-    try {
-      const response = await axios.put(`http://localhost:8000/api/users/${editUser!.uuid}/`, editUser!);
-      setUsers(users.map(user => (user.uuid === editUser!.uuid ? response.data : user)));  
-      setFilteredUsers(users.map(user => (user.uuid === editUser!.uuid ? response.data : user))); 
-      setEditUser(null);  
-      setErrors({});
-    } catch (error) {
-      console.error("ユーザーの更新中にエラーが発生しました", error);
+      try {
+        const response = await axios.put(`http://localhost:8000/api/users/${editUser.uuid}/`, editUser);
+        setUsers(users.map(user => (user.uuid === editUser.uuid ? response.data : user)));  
+        setFilteredUsers(users.map(user => (user.uuid === editUser.uuid ? response.data : user))); 
+        setEditUser(null);  
+        setErrors({});
+      } catch (error) {
+        console.error("ユーザーの更新中にエラーが発生しました", error);
+      }
     }
   };
 
   const handlePhoneInput = (
     e: React.ChangeEvent<HTMLInputElement>, 
-    user: User, 
-    setUser: React.Dispatch<React.SetStateAction<User>>
+    user: User | null, 
+    setUser: React.Dispatch<React.SetStateAction<User | null>>
   ) => {
-    const formattedPhone = e.target.value
-      .replace(/\D/g, '')
-      .replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
-    setUser({ ...user, emergency_contact_phone: formattedPhone });
+    if (user) {
+      const formattedPhone = e.target.value
+        .replace(/\D/g, '')
+        .replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
+      setUser({ ...user, emergency_contact_phone: formattedPhone });
+    }
   };
 
   const renderRequiredLabel = () => (
@@ -180,12 +192,32 @@ const UsersManagement: React.FC = () => {
             type="text"
             placeholder="名前で検索"
             value={searchTerm}
-            onChange={(e) => handlePhoneInput(e, newUser, (user) => setNewUser(user!))}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="border p-2 rounded mr-2"
           />
           <button onClick={() => setSearchTerm('')} className="bg-secondary text-white px-4 py-2 rounded">クリア</button>
         </div>
-        <button onClick={() => { setShowAddForm(true); setErrors({}); }} className="bg-green-500 text-white px-4 py-2 rounded">+ 追加</button>
+        <button onClick={() => { 
+          setNewUser({
+            uuid: '', 
+            user_id: '',
+            user_name: '',
+            user_name_kana: '',
+            user_sex: '',
+            user_birthday: '',
+            emergency_contact_name: '',
+            emergency_contact_phone: '',
+            emergency_contact_relationship: '',
+            allergies: null,
+            medications: null,
+            medical_history: null,
+            email: '', // 新規登録時のみ
+            password: '', // 新規登録時のみ
+            confirmPassword: '', // 新規登録時のみ
+          });
+          setShowAddForm(true); 
+          setErrors({}); 
+        }} className="bg-green-500 text-white px-4 py-2 rounded">+ 追加</button>
       </div>
       <table className="min-w-full bg-white shadow rounded-lg">
         <thead>
@@ -193,7 +225,7 @@ const UsersManagement: React.FC = () => {
             <th className="py-2 px-4 border-b">利用者ID</th>
             <th className="py-2 px-4 border-b">利用者名</th>
             <th className="py-2 px-4 border-b">ふりがな</th>
-            <th className="py-2 px-4 border-b">操作</th>
+            <th className="py-2 px-4 border-b">アクション</th>
           </tr>
         </thead>
         <tbody>
@@ -201,7 +233,9 @@ const UsersManagement: React.FC = () => {
             <tr key={user.uuid}>
               <td className="py-2 px-4 border-b">{user.user_id}</td>
               <td className="py-2 px-4 border-b">
-                <Link href={`/admin/users/${user.uuid}`} className="text-blue-800 underline">{user.user_name}</Link>
+                <Link href={`/admin/users/${user.uuid}`} className="text-blue-800 underline">
+                  {user.user_name}
+                </Link>
               </td>
               <td className="py-2 px-4 border-b">{user.user_name_kana}</td>
               <td className="py-2 px-4 border-b flex space-x-2">
@@ -213,30 +247,17 @@ const UsersManagement: React.FC = () => {
         </tbody>
       </table>
 
-      {/* 編集フォーム */}
       {editUser && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-6xl h-full overflow-auto">
             <h2 className="text-2xl mb-4">利用者情報を編集</h2>
             <label className="block mb-2">
-              利用者ID{renderRequiredLabel()}:
-              <input
-                type="text"
-                value={editUser.user_id}
-                onChange={(e) => setEditUser(prev => prev ? { ...prev, user_id: e.target.value } : null)}
-                className="border p-2 rounded w-full"
-                placeholder="例: 123456"
-              />
-              {renderErrorMessage("user_id")}
-            </label>
-            <label className="block mb-2">
               利用者名{renderRequiredLabel()}:
               <input
                 type="text"
                 value={editUser.user_name}
-                onChange={(e) => setEditUser(prev => prev ? { ...prev, user_name: e.target.value } : null)}
+                onChange={(e) => setEditUser({ ...editUser, user_name: e.target.value })}
                 className="border p-2 rounded w-full"
-                placeholder="例: 山田 太郎"
               />
               {renderErrorMessage("user_name")}
             </label>
@@ -245,9 +266,8 @@ const UsersManagement: React.FC = () => {
               <input
                 type="text"
                 value={editUser.user_name_kana}
-                onChange={(e) => setEditUser(prev => prev ? { ...prev, user_name_kana: e.target.value } : null)}
+                onChange={(e) => setEditUser({ ...editUser, user_name_kana: e.target.value })}
                 className="border p-2 rounded w-full"
-                placeholder="例: やまだ たろう"
               />
               {renderErrorMessage("user_name_kana")}
             </label>
@@ -259,7 +279,7 @@ const UsersManagement: React.FC = () => {
                     type="radio"
                     value="男性"
                     checked={editUser.user_sex === '男性'}
-                    onChange={(e) => setEditUser(prev => prev ? { ...prev, user_sex: e.target.value } : null)}
+                    onChange={(e) => setEditUser({ ...editUser, user_sex: e.target.value })}
                     className="mr-2"
                   />
                   男性
@@ -269,7 +289,7 @@ const UsersManagement: React.FC = () => {
                     type="radio"
                     value="女性"
                     checked={editUser.user_sex === '女性'}
-                    onChange={(e) => setEditUser(prev => prev ? { ...prev, user_sex: e.target.value } : null)}
+                    onChange={(e) => setEditUser({ ...editUser, user_sex: e.target.value })}
                     className="mr-2"
                   />
                   女性
@@ -282,7 +302,7 @@ const UsersManagement: React.FC = () => {
               <input
                 type="date"
                 value={editUser.user_birthday}
-                onChange={(e) => setEditUser(prev => prev ? { ...prev, user_birthday: e.target.value } : null)}
+                onChange={(e) => setEditUser({ ...editUser, user_birthday: e.target.value })}
                 className="border p-2 rounded w-full"
               />
               {renderErrorMessage("user_birthday")}
@@ -292,22 +312,10 @@ const UsersManagement: React.FC = () => {
               <input
                 type="text"
                 value={editUser.emergency_contact_name}
-                onChange={(e) => setEditUser(prev => prev ? { ...prev, emergency_contact_name: e.target.value } : null)}
+                onChange={(e) => setEditUser({ ...editUser, emergency_contact_name: e.target.value })}
                 className="border p-2 rounded w-full"
-                placeholder="例: 田中 花子"
               />
               {renderErrorMessage("emergency_contact_name")}
-            </label>
-            <label className="block mb-2">
-              緊急連絡者との関係{renderRequiredLabel()}:
-              <input
-                type="text"
-                value={editUser.emergency_contact_relationship}
-                onChange={(e) => setEditUser(prev => prev ? { ...prev, emergency_contact_relationship: e.target.value } : null)}
-                className="border p-2 rounded w-full"
-                placeholder="例: 母"
-              />
-              {renderErrorMessage("emergency_contact_relationship")}
             </label>
             <label className="block mb-2">
               緊急連絡先電話番号{renderRequiredLabel()}:
@@ -316,18 +324,26 @@ const UsersManagement: React.FC = () => {
                 value={editUser.emergency_contact_phone}
                 onChange={(e) => handlePhoneInput(e, editUser, setEditUser)}
                 className="border p-2 rounded w-full"
-                placeholder="例: 090-1234-5678"
               />
               {renderErrorMessage("emergency_contact_phone")}
+            </label>
+            <label className="block mb-2">
+              緊急連絡先との関係{renderRequiredLabel()}:
+              <input
+                type="text"
+                value={editUser.emergency_contact_relationship}
+                onChange={(e) => setEditUser({ ...editUser, emergency_contact_relationship: e.target.value })}
+                className="border p-2 rounded w-full"
+              />
+              {renderErrorMessage("emergency_contact_relationship")}
             </label>
             <label className="block mb-2">
               アレルギー:
               <input
                 type="text"
                 value={editUser.allergies ?? ''}
-                onChange={(e) => setEditUser(prev => prev ? { ...prev, allergies: e.target.value } : null)}
+                onChange={(e) => setEditUser({ ...editUser, allergies: e.target.value })}
                 className="border p-2 rounded w-full"
-                placeholder="例: ピーナッツ"
               />
             </label>
             <label className="block mb-2">
@@ -335,9 +351,8 @@ const UsersManagement: React.FC = () => {
               <input
                 type="text"
                 value={editUser.medications ?? ''}
-                onChange={(e) => setEditUser(prev => prev ? { ...prev, medications: e.target.value } : null)}
+                onChange={(e) => setEditUser({ ...editUser, medications: e.target.value })}
                 className="border p-2 rounded w-full"
-                placeholder="例: アスピリン"
               />
             </label>
             <label className="block mb-2">
@@ -345,21 +360,29 @@ const UsersManagement: React.FC = () => {
               <input
                 type="text"
                 value={editUser.medical_history ?? ''}
-                onChange={(e) => setEditUser(prev => prev ? { ...prev, medical_history: e.target.value } : null)}
+                onChange={(e) => setEditUser({ ...editUser, medical_history: e.target.value })}
                 className="border p-2 rounded w-full"
-                placeholder="例: 高血圧"
               />
             </label>
             <div className="flex justify-end space-x-2 mt-4">
-              <button onClick={handleUpdateUser} className="bg-blue-500 text-white px-4 py-2 rounded">更新</button>
-              <button onClick={() => setEditUser(null)} className="bg-gray-500 text-white px-4 py-2 rounded">キャンセル</button>
+              <button 
+                onClick={handleUpdateUser}
+                className="bg-blue-500 text-white px-4 py-2 rounded"
+              >
+                更新
+              </button>
+              <button 
+                onClick={() => setEditUser(null)} 
+                className="bg-gray-500 text-white px-4 py-2 rounded"
+              >
+                キャンセル
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* 新規ユーザー追加フォーム */}
-      {showAddForm && (
+      {showAddForm && newUser && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-6xl h-full overflow-auto">
             <h2 className="text-2xl mb-4">新規利用者追加</h2>
@@ -433,13 +456,13 @@ const UsersManagement: React.FC = () => {
               {renderErrorMessage("emergency_contact_name")}
             </label>
             <label className="block mb-2">
-              緊急連絡者との関係{renderRequiredLabel()}:
+              緊急連絡先との関係{renderRequiredLabel()}:
               <input
                 type="text"
                 value={newUser.emergency_contact_relationship}
                 onChange={(e) => setNewUser({ ...newUser, emergency_contact_relationship: e.target.value })}
                 className="border p-2 rounded w-full"
-                placeholder="例: 母"
+                placeholder="例: 子"
               />
               {renderErrorMessage("emergency_contact_relationship")}
             </label>
@@ -453,6 +476,39 @@ const UsersManagement: React.FC = () => {
                 placeholder="例: 090-1234-5678"
               />
               {renderErrorMessage("emergency_contact_phone")}
+            </label>
+            <label className="block mb-2">
+              メールアドレス{renderRequiredLabel()}:
+              <input
+                type="email"
+                value={newUser.email}
+                onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                className="border p-2 rounded w-full"
+                placeholder="例: example@example.com"
+              />
+              {renderErrorMessage("email")}
+            </label>
+            <label className="block mb-2">
+              パスワード{renderRequiredLabel()}:
+              <input
+                type="password"
+                value={newUser.password}
+                onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                className="border p-2 rounded w-full"
+                placeholder="パスワードを入力してください"
+              />
+              {renderErrorMessage("password")}
+            </label>
+            <label className="block mb-2">
+              パスワード確認{renderRequiredLabel()}:
+              <input
+                type="password"
+                value={newUser.confirmPassword}
+                onChange={(e) => setNewUser({ ...newUser, confirmPassword: e.target.value })}
+                className="border p-2 rounded w-full"
+                placeholder="再度パスワードを入力してください"
+              />
+              {renderErrorMessage("confirmPassword")}
             </label>
             <label className="block mb-2">
               アレルギー:
@@ -487,7 +543,7 @@ const UsersManagement: React.FC = () => {
             <div className="flex justify-end space-x-2 mt-4">
               <button 
                 onClick={handleAddUser}
-                className={`bg-green-500 text-white px-4 py-2 rounded ${!Object.keys(errors).length ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`bg-green-500 text-white px-4 py-2 rounded ${Object.keys(errors).length > 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                 disabled={Object.keys(errors).length > 0}
               >
                 追加

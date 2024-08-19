@@ -87,7 +87,7 @@ const SignInPage: React.FC = () => {
         </Link>
       </div>
       <div className="mt-2 md:mt-4 text-sm md:text-xl">
-        <Link href="/privacy-policy" className="text-blue-500 hover:underline">
+        <Link href="/user/userPrivasyPolicy" className="text-blue-500 hover:underline">
           carebridge プライバシーポリシー
         </Link>
       </div>

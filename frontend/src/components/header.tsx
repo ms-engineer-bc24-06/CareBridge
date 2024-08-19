@@ -28,8 +28,8 @@ const Header = () => {
           className="h-10"
         />
       </div>
-      {/* サインインページ以外でログアウトボタンを表示 */}
-      {pathname !== "/staff/signin" && (
+      {/* サインインページとDetailsページ以外でログアウトボタンを表示 */}
+      {pathname !== "/staff/signin" && pathname !== "/webHomePage/details" && (
         <button onClick={handleLogout} className="text-text">
           ログアウト
         </button>
