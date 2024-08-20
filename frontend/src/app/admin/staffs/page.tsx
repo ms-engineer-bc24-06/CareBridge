@@ -83,14 +83,16 @@ const StaffsManagement: React.FC = () => {
         console.log('Sending data:', {
             display_name: newStaff.staff_name,
             email: newStaff.user_id,
-            password: newStaff.password
+            password: newStaff.password,
+            is_admin: newStaff.is_admin  // この部分が重要
         });
 
         const csrfToken = getCsrfToken(); 
         const response = await axios.post('http://localhost:8000/firebaseManagement/create_staff_user/', {
             display_name: newStaff.staff_name,
             email: newStaff.user_id,
-            password: newStaff.password
+            password: newStaff.password,
+            is_admin: newStaff.is_admin  // ここでis_adminをバックエンドに送信
         }, {
             headers: {
                 'X-CSRFToken': csrfToken || ''
@@ -323,6 +325,15 @@ const StaffsManagement: React.FC = () => {
                 </button>
               </div>
               {renderErrorMessage("confirmPassword")}
+            </label>
+            <label className="block mb-2">
+              管理者権限:
+                <input
+                  type="checkbox"
+                  checked={newStaff.is_admin}
+                  onChange={(e) => setNewStaff({ ...newStaff, is_admin: e.target.checked })}
+                  className="h-4 w-4"
+                />
             </label>
             <div className="flex justify-end space-x-2 mt-4">
               <button onClick={handleAddStaff} className="bg-green-500 text-white px-4 py-2 rounded">追加</button>

@@ -24,6 +24,7 @@ def create_staff_user(request):
         display_name = data.get('display_name')  # 名前
         email = data.get('email')                # メールアドレス
         password = data.get('password')          # パスワード
+        is_admin = data.get('is_admin', False)   # 管理者権限かどうかのフラグを取得
 
         # リクエスト内容をログに出力
         logger.info(f"Received request to create user: {display_name}, {email}")
@@ -36,16 +37,22 @@ def create_staff_user(request):
             disabled=False
         )
 
+        # カスタムクレームで職員ユーザーとしてマーク
+        role = 'admin' if is_admin else 'staff'
+        auth.set_custom_user_claims(user.uid, {'role': role})
+        logger.info(f"Custom claims set for user {user.uid}: role={role}")
+
         # ユーザー作成成功時のログ出力
-        logger.info(f"User created successfully: {user.uid}")
+        logger.info(f"Staff user created successfully: {user.uid}")
 
         # 成功レスポンスを返す
         return JsonResponse({'message': 'Staff user created successfully', 'user_id': user.uid})
     except Exception as e:
         # エラー発生時のログ出力
-        logger.error(f"Error creating user: {str(e)}")
+        logger.error(f"Error creating staff user: {str(e)}")
         return JsonResponse({'error': str(e)}, status=500)
-
+    
+    
 # Firebase Admin SDKが正しく機能しているかをテストする関数：不要になった場合、将来的に削除しても良い
 def test_firebase(request):
     try:
@@ -58,7 +65,6 @@ def test_firebase(request):
         })
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
-
 
 @csrf_exempt
 def register_family_member_user(request):
@@ -82,6 +88,10 @@ def register_family_member_user(request):
             display_name=display_name,
             disabled=False
         )
+
+        # カスタムクレームで家族ユーザーとしてマーク
+        auth.set_custom_user_claims(user.uid, {'role': 'family'})
+        logger.info(f"Custom claims set for user {user.uid}: role=family")
 
         # ユーザー作成成功時のログ出力
         logger.info(f"Family member user created successfully: {user.uid}")

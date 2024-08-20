@@ -126,6 +126,12 @@ LOGGING = {
             'handlers': ['console'],
             'propagate': False,
         },
+        # ルートロガーの設定
+        '': {
+            'handlers': ['console'],
+            'level': 'INFO',  # INFOレベル以上のログを出力
+            'propagate': True,
+        },
     },
 }
 
