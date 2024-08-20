@@ -28,7 +28,7 @@ const SignInPage: React.FC = () => {
         console.log("Sign in successful as family, redirecting to /user/top");
         router.push("/user/top"); // 介護家族用トップページにリダイレクト
       } else {
-        setError("このページにアクセスする権限がありません。");
+        setError("ログインできませんでした。メールアドレスとパスワードを確認してください。");
       }
     } catch (error) {
       console.error("ログインエラー:", error);
