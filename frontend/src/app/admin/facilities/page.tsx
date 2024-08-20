@@ -23,7 +23,7 @@ const FacilitiesManagement: React.FC = () => {
 
   const fetchFacility = async () => {
     try {
-      const response = await axios.get<Facility>('http://localhost:8000/api/facilities/1/');  // IDが1の施設を取得
+      const response = await axios.get<Facility>('http://localhost:8000/api/facilities/3/');  // IDが1の施設を取得
       setFacility(response.data);  // 取得した施設情報をstateに保存
     } catch (error) {
       console.error("施設情報の取得中にエラーが発生しました", error);
