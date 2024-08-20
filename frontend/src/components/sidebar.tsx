@@ -5,6 +5,7 @@ import axios from "axios";
 type SidebarProps = {
   onSelectUser: (userUuid: string) => void;
   selectedUserUuid: string | null; // 現在選択されているユーザーのUUID
+  firebaseUid: string | null; // Firebase UID
 };
 
 type User = {
@@ -12,19 +13,25 @@ type User = {
   user_name: string;
 };
 
-const Sidebar = ({ onSelectUser, selectedUserUuid }: SidebarProps) => {
+const Sidebar = ({
+  onSelectUser,
+  selectedUserUuid,
+  firebaseUid,
+}: SidebarProps) => {
   const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    if (firebaseUid) {
+      fetchUsers(firebaseUid);
+    }
+  }, [firebaseUid]);
 
   // ユーザー一覧を取得する非同期関数
-  const fetchUsers = async () => {
+  const fetchUsers = async (firebaseUid: string) => {
     try {
       const response = await axios.get<User[]>(
-        "http://localhost:8000/api/users/"
+        `http://localhost:8000/api/users/?firebase_uid=${firebaseUid}`
       );
       setUsers(response.data);
     } catch (error) {
