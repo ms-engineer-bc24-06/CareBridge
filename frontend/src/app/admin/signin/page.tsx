@@ -18,7 +18,7 @@ const SignInPage: React.FC = () => {
       console.log("Attempting sign in with email:", email);
       await signInWithEmailAndPassword(auth, email, facilityId); // 施設IDをパスワードとして使用
       console.log("Sign in successful, redirecting to /admin/dashboard");
-      router.push("/admin/dashboard"); 
+      router.push("/admin/payments"); 
     } catch (error) {
       setError("ログインできませんでした。メールアドレスと施設IDを確認してください。");
     }
