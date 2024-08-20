@@ -37,18 +37,6 @@ const MenuBar = () => {
           ケア記録一覧
           <span className="absolute left-0 bottom-[-13px] w-full h-0.5 bg-secondary opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
         </Link>
-        <Link
-          href="/staff/Information"
-          className="group ml-4 flex items-center relative"
-        >
-          <img
-            src="/images/contactNotes_icon.png"
-            alt="ContactNotes"
-            className="mr-1 w-5"
-          />
-          お知らせ登録
-          <span className="absolute left-0 bottom-[-13px] w-full h-0.5 bg-secondary opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-        </Link>
       </div>
     </nav>
   );

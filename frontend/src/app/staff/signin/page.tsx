@@ -16,7 +16,11 @@ const SignInPage: React.FC = () => {
 
     try {
       console.log("Attempting sign in with email:", email);
-      const userCredential = await signInWithEmailAndPassword(auth, email, password); // Firebaseでのサインイン
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      ); // Firebaseでのサインイン
       const user = userCredential.user;
 
       // カスタムクレームを取得
@@ -24,18 +28,24 @@ const SignInPage: React.FC = () => {
       const role = idTokenResult.claims.role;
 
       // 役割に応じてリダイレクトまたはエラーメッセージを表示
-      if (role === 'admin') {
-        console.log("Sign in successful as admin, redirecting to /admin/dashboard");
+      if (role === "admin") {
+        console.log(
+          "Sign in successful as admin, redirecting to /admin/dashboard"
+        );
         router.push("/admin/dashboard"); // 管理者用ダッシュボードにリダイレクト
-      } else if (role === 'staff') {
-        console.log("Sign in successful as staff, redirecting to /staff/top");
-        router.push("/staff/top"); // 職員用トップページにリダイレクト
+      } else if (role === "staff") {
+        console.log("Sign in successful as staff, redirecting to /staff/users");
+        router.push("/staff/users"); // 職員用トップページにリダイレクト
       } else {
-        setError("ログインできませんでした。メールアドレスとパスワードを確認してください。");
+        setError(
+          "ログインできませんでした。メールアドレスとパスワードを確認してください。"
+        );
       }
     } catch (error) {
       console.error("ログインエラー:", error);
-      setError("ログインできませんでした。メールアドレスとパスワードを確認してください。");
+      setError(
+        "ログインできませんでした。メールアドレスとパスワードを確認してください。"
+      );
     }
   };
 
@@ -98,7 +108,10 @@ const SignInPage: React.FC = () => {
         </Link>
       </div>
       <div className="mt-2 md:mt-4 text-sm md:text-xl">
-        <Link href="/staff/staffPrivacyPolicy" className="text-blue-500 hover:underline">
+        <Link
+          href="/staff/staffPrivacyPolicy"
+          className="text-blue-500 hover:underline"
+        >
           carebridge プライバシーポリシー
         </Link>
       </div>
@@ -107,6 +120,3 @@ const SignInPage: React.FC = () => {
 };
 
 export default SignInPage;
-
-
-

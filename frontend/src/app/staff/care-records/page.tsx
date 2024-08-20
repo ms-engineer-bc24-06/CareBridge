@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { getAuth } from "firebase/auth";
 
 // ユーザーとケア記録の型定義
 type User = {
@@ -37,39 +38,48 @@ const CareRecordsListPage: React.FC = () => {
   const [careRecords, setCareRecords] = useState<{
     [key: string]: CareRecord[];
   }>({});
-  const [staffDetails, setStaffDetails] = useState<{ [key: string]: StaffDetail }>({});
+  const [staffDetails, setStaffDetails] = useState<{
+    [key: string]: StaffDetail;
+  }>({});
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
 
+  // Firebase UIDの取得とユーザー情報の取得
   useEffect(() => {
-    fetchUsers(); // コンポーネントマウント時にユーザー情報を取得
+    const fetchUsersByFirebaseUid = async () => {
+      const auth = getAuth();
+      const user = auth.currentUser;
+      if (user) {
+        try {
+          // ここでスタッフのFirebase UIDを使用してユーザーを取得する
+          const response = await axios.get<User[]>(
+            `http://localhost:8000/api/users/?firebase_uid=${user.uid}`
+          );
+          const usersData = response.data;
+          setUsers(usersData);
+          setFilteredUsers(usersData);
+
+          // ユーザーごとのケア記録を取得
+          usersData.forEach((user) => {
+            fetchCareRecords(user.uuid);
+          });
+        } catch (error) {
+          console.error("ユーザー情報の取得中にエラーが発生しました", error);
+        }
+      }
+    };
+
+    fetchUsersByFirebaseUid(); // Firebase UIDを使ってユーザー情報を取得
     fetchStaffDetails(); // スタッフ情報を取得
   }, []);
-
-  const fetchUsers = async () => {
-    try {
-      const response = await axios.get<User[]>(
-        "http://localhost:8000/api/users/"
-      );
-      const usersData = response.data;
-      setUsers(usersData);
-      setFilteredUsers(usersData);
-
-      // ユーザーごとのケア記録を取得
-      usersData.forEach((user) => {
-        fetchCareRecords(user.uuid);
-      });
-    } catch (error) {
-      console.error("ユーザー情報の取得中にエラーが発生しました");
-    }
-  };
 
   const fetchCareRecords = async (userUuid: string) => {
     try {
       const response = await axios.get<CareRecord[]>(
         `http://localhost:8000/api/care-records/${userUuid}/`
       );
+      // 日付の新しい順にソート
       const sortedRecords = response.data.sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime() // 日付の新しい順にソート
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
       );
       setCareRecords((prevState) => ({
         ...prevState,
@@ -80,7 +90,6 @@ const CareRecordsListPage: React.FC = () => {
     }
   };
 
-  // スタッフ情報を取得してマッピングを作成する関数
   const fetchStaffDetails = async () => {
     try {
       const response = await axios.get<StaffDetail[]>(
@@ -108,6 +117,22 @@ const CareRecordsListPage: React.FC = () => {
       );
     }
   }, [searchTerm, users]);
+
+  // 全ユーザーのケア記録をまとめて日付順にソート
+  const getSortedCareRecords = () => {
+    const allRecords: { user: User; record: CareRecord }[] = [];
+    filteredUsers.forEach((user) => {
+      const userRecords = careRecords[user.uuid] || [];
+      userRecords.forEach((record) => {
+        allRecords.push({ user, record });
+      });
+    });
+
+    return allRecords.sort(
+      (a, b) =>
+        new Date(b.record.date).getTime() - new Date(a.record.date).getTime()
+    );
+  };
 
   // 月と日付でフィルタリング
   const filterRecordsByDate = (records: CareRecord[]) => {
@@ -195,25 +220,24 @@ const CareRecordsListPage: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {filteredUsers.map((user) =>
-            filterRecordsByDate(careRecords[user.uuid] || []).map((record) => (
-              <tr key={`${user.uuid}-${record.date}`}>
-                <td className="py-2 px-3 border-b">{record.date}</td>
-                <td className="py-2 px-3 border-b">{user.user_id}</td>
-                <td className="py-2 px-3 border-b">{user.user_name}</td>
-                <td className="py-2 px-3 border-b">{record.meal}</td>
-                <td className="py-2 px-3 border-b">{record.excretion}</td>
-                <td className="py-2 px-3 border-b">{record.bath}</td>
-                <td className="py-2 px-3 border-b">{record.temperature}</td>
-                <td className="py-2 px-3 border-b">{record.systolic_bp}</td>
-                <td className="py-2 px-3 border-b">{record.diastolic_bp}</td>
-                {/* スタッフUUIDを元に対応するスタッフ名を表示 */}
-                <td className="py-2 px-3 border-b">
-                  {staffDetails[record.staff]?.staff_name || "不明"}
-                </td>
-              </tr>
-            ))
-          )}
+          {/* 日付順にソートされたケア記録を表示 */}
+          {getSortedCareRecords().map(({ user, record }) => (
+            <tr key={`${user.uuid}-${record.date}`}>
+              <td className="py-2 px-3 border-b">{record.date}</td>
+              <td className="py-2 px-3 border-b">{user.user_id}</td>
+              <td className="py-2 px-3 border-b">{user.user_name}</td>
+              <td className="py-2 px-3 border-b">{record.meal}</td>
+              <td className="py-2 px-3 border-b">{record.excretion}</td>
+              <td className="py-2 px-3 border-b">{record.bath}</td>
+              <td className="py-2 px-3 border-b">{record.temperature}</td>
+              <td className="py-2 px-3 border-b">{record.systolic_bp}</td>
+              <td className="py-2 px-3 border-b">{record.diastolic_bp}</td>
+              {/* スタッフUUIDを元に対応するスタッフ名を表示 */}
+              <td className="py-2 px-3 border-b">
+                {staffDetails[record.staff]?.staff_name || "不明"}
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>
