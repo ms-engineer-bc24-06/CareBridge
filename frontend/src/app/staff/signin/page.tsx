@@ -31,7 +31,7 @@ const SignInPage: React.FC = () => {
         console.log("Sign in successful as staff, redirecting to /staff/top");
         router.push("/staff/top"); // 職員用トップページにリダイレクト
       } else {
-        setError("このページにアクセスする権限がありません。");
+        setError("ログインできませんでした。メールアドレスとパスワードを確認してください。");
       }
     } catch (error) {
       console.error("ログインエラー:", error);
