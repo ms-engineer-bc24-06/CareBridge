@@ -1,5 +1,29 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { getAuth } from "firebase/auth";
+import axios from "axios";
 
+// スタッフの情報を定義する型
+type Staff = {
+  uuid: string;
+  staff_name: string;
+  staff_id: string;
+};
+
+// ケア記録の情報を定義する型
+type CareRecord = {
+  id?: number; // idは新規作成時には存在しない可能性があるためオプショナル
+  date: string;
+  meal: string;
+  excretion: string;
+  bath: string;
+  temperature: number;
+  systolic_bp: number;
+  diastolic_bp: number;
+  comments: string;
+  staff: string;
+};
+
+// フォームコンポーネントに渡されるプロパティの型を定義
 type CareRecordFormProps = {
   user: {
     uuid: string;
@@ -11,72 +35,133 @@ type CareRecordFormProps = {
     emergency_contact_name: string;
     emergency_contact_phone: string;
   };
-  onClose: () => void;
+  onClose: () => void; // フォームが閉じられるときに呼び出される関数
+  record?: CareRecord | null; // 編集時の既存データ、ない場合は新規作成
 };
 
-const CareRegisterForm: React.FC<CareRecordFormProps> = ({ user, onClose }) => {
-  const [date, setDate] = useState("");
-  const [meal, setMeal] = useState("");
-  const [excretion, setExcretion] = useState("");
-  const [bath, setBath] = useState("");
-  const [temperature, setTemperature] = useState("");
-  const [systolic_bp, setSystolic_bp] = useState(""); // フィールド名を変更
-  const [diastolic_bp, setDiastolic_bp] = useState(""); // フィールド名を変更
-  const [comments, setComments] = useState("");
+// ケア記録フォームのコンポーネントを定義
+const CareRegisterForm: React.FC<CareRecordFormProps> = ({
+  user,
+  onClose,
+  record,
+}) => {
+  // フォームの入力値を管理する状態変数
+  const [date, setDate] = useState(record ? record.date : "");
+  const [meal, setMeal] = useState(record ? record.meal : "");
+  const [excretion, setExcretion] = useState(record ? record.excretion : "");
+  const [bath, setBath] = useState(record ? record.bath : "");
+  const [temperature, setTemperature] = useState(
+    record ? record.temperature : ""
+  );
+  const [systolic_bp, setSystolic_bp] = useState(
+    record ? record.systolic_bp : ""
+  );
+  const [diastolic_bp, setDiastolic_bp] = useState(
+    record ? record.diastolic_bp : ""
+  );
+  const [comments, setComments] = useState(record ? record.comments : "");
+  const [staffUuid, setStaffUuid] = useState<string>(""); // スタッフのUUIDを管理
+  const [staffName, setStaffName] = useState<string>(""); // スタッフの名前を管理
 
-  // 仮のスタッフUUIDを設定する（小林 玲奈さんのUUIDと仮定）
-  const staffUuid = "9fae7d8d-9282-4b8e-b156-14e322944e74";  // スタッフログイン実装後削除
+  // コンポーネントのマウント時に実行される処理
+  useEffect(() => {
+    // Firebase認証情報を利用してスタッフ情報を取得
+    const fetchStaffInfo = async () => {
+      const auth = getAuth(); // Firebase認証インスタンスを取得
+      const user = auth.currentUser; // 現在のユーザーを取得
 
+      if (user) {
+        try {
+          // 現在のユーザーのUIDを使ってスタッフ情報を取得
+          const response = await axios.get<Staff>(
+            `http://localhost:8000/api/staffs/firebase/${user.uid}/`
+          );
+
+          // スタッフUUIDと名前を状態にセット
+          setStaffUuid(response.data.uuid);
+          setStaffName(response.data.staff_name);
+        } catch (error) {
+          console.error("スタッフ情報の取得中にエラーが発生しました:");
+        }
+      }
+    };
+
+    fetchStaffInfo(); // スタッフ情報を取得
+
+    if (record) {
+      // 編集時には既存のデータをフォームにセット
+      setDate(record.date);
+      setMeal(record.meal);
+      setExcretion(record.excretion);
+      setBath(record.bath);
+      setTemperature(record.temperature);
+      setSystolic_bp(record.systolic_bp);
+      setDiastolic_bp(record.diastolic_bp);
+      setComments(record.comments);
+      setStaffUuid(record.staff);
+    }
+  }, [record]);
+
+  // フォームの送信処理
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 登録するためのデータを準備
+    // 送信するケア記録データを準備
     const careRecordData = {
       user: user.uuid,
-      date: date,
-      meal: meal,
-      excretion: excretion,
-      bath: bath,
-      temperature: temperature,
-      systolic_bp: systolic_bp, // 修正されたフィールド名を使用
-      diastolic_bp: diastolic_bp, // 修正されたフィールド名を使用
-      comments: comments,
-      staff: staffUuid, // 仮のスタッフUUIDを送信データに追加、実装後削除！
+      date,
+      meal,
+      excretion,
+      bath,
+      temperature,
+      systolic_bp,
+      diastolic_bp,
+      comments,
+      staff: staffUuid,
     };
 
     try {
-      // POSTリクエストでデータを送信
-      console.log("送信するデータ:", careRecordData);
-
-      const response = await fetch("http://localhost:8000/api/care-records/create/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(careRecordData),
-      });
-
-      // レスポンスのステータスとデータを確認
-      console.log("レスポンスステータス:", response.status);
-      const data = await response.json();
-      console.log("レスポンスデータ:", data);
-
-      // レスポンスが成功かどうかを判定
-      if (response.ok) {
-        alert("ケア記録が登録されました。");
-        onClose(); // モーダルを閉じる
+      let response;
+      if (record && record.id) {
+        // 編集の場合、PUTリクエストを送信
+        response = await fetch(
+          `http://localhost:8000/api/care-records/update/${record.id}/`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(careRecordData),
+          }
+        );
       } else {
-        alert("ケア記録の登録に失敗しました。");
+        // 新規作成の場合、POSTリクエストを送信
+        response = await fetch(
+          "http://localhost:8000/api/care-records/create/",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(careRecordData),
+          }
+        );
+      }
+
+      if (response.ok) {
+        alert(
+          record ? "ケア記録が更新されました。" : "ケア記録が登録されました。"
+        );
+        onClose(); // フォーム送信後に閉じる処理
+      } else {
+        alert("ケア記録の送信に失敗しました。");
       }
     } catch (error) {
-      console.error("エラーが発生しました:", error);
-      alert("ケア記録の登録中にエラーが発生しました。");
+      console.error("ケア記録の送信中にエラーが発生しました:");
+      alert("ケア記録の送信中にエラーが発生しました。");
     }
   };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75">
       <div className="bg-white rounded-lg shadow-lg p-6 w-3/4">
+        {/* ユーザー情報の表示 */}
         <div className="flex items-center mb-4">
           <div className="mr-4">
             <h1 className="text-2xl font-bold">{user.user_id}</h1>
@@ -84,8 +169,10 @@ const CareRegisterForm: React.FC<CareRecordFormProps> = ({ user, onClose }) => {
             <p>{user.user_name_kana}</p>
           </div>
         </div>
+        {/* ケア記録フォーム */}
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-4 mb-4">
+            {/* 日付の入力 */}
             <div>
               <label className="block text-gray-700">日付</label>
               <input
@@ -95,6 +182,7 @@ const CareRegisterForm: React.FC<CareRecordFormProps> = ({ user, onClose }) => {
                 className="border p-2 rounded w-full"
               />
             </div>
+            {/* 体温の入力 */}
             <div>
               <label className="block text-gray-700">体温</label>
               <input
@@ -104,24 +192,27 @@ const CareRegisterForm: React.FC<CareRecordFormProps> = ({ user, onClose }) => {
                 className="border p-2 rounded w-full"
               />
             </div>
+            {/* 血圧（最低）の入力 */}
             <div>
               <label className="block text-gray-700">血圧（最低）</label>
               <input
                 type="text"
-                value={diastolic_bp}  // 修正されたフィールド名を使用
-                onChange={(e) => setDiastolic_bp(e.target.value)}  // 修正されたフィールド名を使用
+                value={diastolic_bp}
+                onChange={(e) => setDiastolic_bp(e.target.value)}
                 className="border p-2 rounded w-full"
               />
             </div>
+            {/* 血圧（最高）の入力 */}
             <div>
               <label className="block text-gray-700">血圧（最高）</label>
               <input
                 type="text"
-                value={systolic_bp}  // 修正されたフィールド名を使用
-                onChange={(e) => setSystolic_bp(e.target.value)}  // 修正されたフィールド名を使用
+                value={systolic_bp}
+                onChange={(e) => setSystolic_bp(e.target.value)}
                 className="border p-2 rounded w-full"
               />
             </div>
+            {/* 食事の入力 */}
             <div>
               <label className="block text-gray-700">食事</label>
               <select
@@ -137,6 +228,7 @@ const CareRegisterForm: React.FC<CareRecordFormProps> = ({ user, onClose }) => {
                 <option value="食べなかった">食べなかった</option>
               </select>
             </div>
+            {/* 排泄の入力 */}
             <div>
               <label className="block text-gray-700">排泄</label>
               <select
@@ -153,6 +245,7 @@ const CareRegisterForm: React.FC<CareRecordFormProps> = ({ user, onClose }) => {
                 <option value="なし">なし</option>
               </select>
             </div>
+            {/* 入浴の入力 */}
             <div>
               <label className="block text-gray-700">入浴</label>
               <select
@@ -167,6 +260,7 @@ const CareRegisterForm: React.FC<CareRecordFormProps> = ({ user, onClose }) => {
                 <option value="なし">なし</option>
               </select>
             </div>
+            {/* コメントの入力 */}
             <div>
               <label className="block text-gray-700">コメント</label>
               <textarea
@@ -176,19 +270,20 @@ const CareRegisterForm: React.FC<CareRecordFormProps> = ({ user, onClose }) => {
               ></textarea>
             </div>
           </div>
+          {/* フォーム送信ボタン */}
           <div className="flex justify-end mt-4">
             <button
               type="button"
               onClick={onClose}
               className="bg-accent text-white px-4 py-2 rounded mr-2"
             >
-             キャンセル
+              キャンセル
             </button>
             <button
               type="submit"
               className="bg-accent2 text-white px-4 py-2 rounded"
             >
-              登録する
+              {record ? "更新する" : "登録する"}
             </button>
           </div>
         </form>
