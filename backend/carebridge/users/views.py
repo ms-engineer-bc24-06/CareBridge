@@ -1,15 +1,30 @@
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from carebridge.models import User
+from carebridge.models import User, Staff
 from .serializers import UserSerializer
 from uuid import UUID
 
 @api_view(['GET'])
 def get_users(request):
-    users = User.objects.all()
-    serializer = UserSerializer(users, many=True)
-    return Response(serializer.data)
+    try:
+        # ログインしているスタッフのFirebase UIDを取得
+        firebase_uid = request.GET.get('firebase_uid')
+        if not firebase_uid:
+            return Response({"error": "Firebase UIDが必要です"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Firebase UIDからスタッフ情報を取得
+        try:
+            staff = Staff.objects.get(firebase_uid=firebase_uid)
+        except Staff.DoesNotExist:
+            return Response({"error": "スタッフが見つかりません"}, status=status.HTTP_404_NOT_FOUND)
+
+        # スタッフの施設に紐づくユーザーを取得
+        users = User.objects.filter(facility=staff.facility)
+        serializer = UserSerializer(users, many=True)
+        return Response(serializer.data)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['GET'])
 def get_user(request, uuid):

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Link from "next/link";
+import { getAuth } from "firebase/auth"; // Firebase Auth をインポート
 
 type User = {
   uuid: string;
@@ -21,10 +22,24 @@ const Users: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
 
-  // コンポーネントがマウントされたときにユーザー情報を取得
+  // FirebaseからのUIDを保持する状態を追加
+  const [firebaseUid, setFirebaseUid] = useState<string | null>(null);
+
+  // コンポーネントがマウントされたときにFirebase UIDを取得
   useEffect(() => {
-    fetchUsers();
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (user) {
+      setFirebaseUid(user.uid);
+    }
   }, []);
+
+  // Firebase UIDが取得できたらユーザー情報を取得
+  useEffect(() => {
+    if (firebaseUid) {
+      fetchUsers(firebaseUid);
+    }
+  }, [firebaseUid]);
 
   // 検索条件が変更されたときにユーザーリストをフィルタリング
   useEffect(() => {
@@ -40,10 +55,10 @@ const Users: React.FC = () => {
   }, [searchTerm, users]);
 
   // ユーザー情報をAPIから取得する関数
-  const fetchUsers = async () => {
+  const fetchUsers = async (firebaseUid: string) => {
     try {
       const response = await axios.get<User[]>(
-        "http://localhost:8000/api/users/"
+        `http://localhost:8000/api/users/?firebase_uid=${firebaseUid}`
       );
       setUsers(response.data);
       setFilteredUsers(response.data); // 初期状態で全てのユーザーを表示
