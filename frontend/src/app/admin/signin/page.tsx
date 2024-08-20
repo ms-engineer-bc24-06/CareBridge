@@ -16,20 +16,30 @@ const SignInPage: React.FC = () => {
 
     try {
       console.log("Attempting sign in with email:", email);
-      await signInWithEmailAndPassword(auth, email, facilityId); // 施設IDをパスワードとして使用
-      console.log("Sign in successful, redirecting to /admin/dashboard");
-      router.push("/admin/payments"); 
+      const userCredential = await signInWithEmailAndPassword(auth, email, facilityId); // 施設IDをパスワードとして使用
+      const user = userCredential.user;
+
+      // カスタムクレームを取得
+      const idTokenResult = await user.getIdTokenResult();
+      const role = idTokenResult.claims.role;
+
+      // ロールが 'admin' かどうか確認
+      if (role === 'admin') {
+        console.log("Sign in successful, redirecting to /admin/payments");
+        router.push("/admin/payments"); // 管理者用ダッシュボードにリダイレクト
+      } else {
+        setError("管理者権限がありません。");
+      }
     } catch (error) {
+      console.error("ログインエラー:", error);
       setError("ログインできませんでした。メールアドレスと施設IDを確認してください。");
     }
   };
 
   return (
-    <div
-      className="flex flex-col items-center justify-center h-screen bg-cover bg-center p-4"
-    >
+    <div className="flex flex-col items-center justify-center h-screen bg-cover bg-center p-4">
       <h1 className="text-4xl mb-12">管理者ログイン</h1>
-      <form onSubmit={handleSignIn} className="w-96 bg-white p-8 rounded-lg shadow-lg"> {/* w-96でフォームの幅を広げる */}
+      <form onSubmit={handleSignIn} className="w-96 bg-white p-8 rounded-lg shadow-lg">
         <div className="mb-6">
           <label htmlFor="email" className="block text-gray-700 text-xl mb-2">メールアドレス</label>
           <input
@@ -74,5 +84,3 @@ const SignInPage: React.FC = () => {
 };
 
 export default SignInPage;
-
-
