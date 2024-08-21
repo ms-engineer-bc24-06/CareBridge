@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Facility, Payment, Admin, Transaction, User, UserCounter, Staff, StaffCounter, ContactNote, CareRecord, MedicalRecord
+from .models import Plan, Facility, Payment, Transaction, User, UserCounter, Staff, StaffCounter, ContactNote, CareRecord, MedicalRecord
 from django.db import models
 from django.forms import widgets
 
@@ -17,9 +17,9 @@ class CareRecordAdmin(admin.ModelAdmin):
             kwargs["to_field_name"] = "staff_id"
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
+admin.site.register(Plan)
 admin.site.register(Facility)
 admin.site.register(Payment)
-admin.site.register(Admin)
 admin.site.register(Transaction)
 admin.site.register(User)
 admin.site.register(UserCounter)
