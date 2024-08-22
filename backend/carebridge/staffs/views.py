@@ -1,6 +1,8 @@
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
 from carebridge.models import Staff
 from .serializers import StaffSerializer
 from uuid import UUID
@@ -57,3 +59,12 @@ def delete_staff(request, uuid):
         return Response(status=status.HTTP_204_NO_CONTENT)
     except Staff.DoesNotExist:
         return Response({"message": "職員が見つかりません"}, status=status.HTTP_404_NOT_FOUND)
+    
+@login_required
+def get_staff_facility_id(request):
+    try:
+        # ログインしているスタッフのfacility_idを取得
+        staff = Staff.objects.get(firebase_uid=request.user.firebase_uid)
+        return JsonResponse({'facility_id': staff.facility_id})
+    except Staff.DoesNotExist:
+        return JsonResponse({"message": "スタッフが見つかりません"}, status=404)
