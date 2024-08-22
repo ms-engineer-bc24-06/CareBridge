@@ -171,14 +171,19 @@ class CareRecord(models.Model):
     
     def __str__(self):
         return f"{self.user} - {self.date}"
-
-class MedicalRecord(models.Model):
-    id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='uuid')
-    date = models.DateField()
-    medical_facility_name = models.CharField(max_length=255)
-    type = models.CharField(max_length=50)
-    detail = models.TextField()
     
+class Prescription(models.Model):
+    id = models.AutoField(primary_key=True)  # 自動増分の整数型IDを主キーとして使用
+    user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='uuid')
+    hospital_name = models.CharField(max_length=255)  # 病院名
+    date = models.DateField()  # 日付
+    medication_name = models.CharField(max_length=255)  # 薬の名前
+    dosage_and_usage = models.TextField()  # 投薬方法と用法
+    pharmacy_name = models.CharField(max_length=255)  # 薬局名
+    pharmacy_phone_number = models.CharField(max_length=15, blank=True, null=True)  # 薬局の電話番号
+    comment = models.TextField(blank=True, null=True)  # コメント
+    staff = models.ForeignKey(Staff, on_delete=models.CASCADE, to_field='uuid')
+    created_at = models.DateTimeField(auto_now_add=True)  # レコード作成日時
+
     def __str__(self):
-        return f"{self.user} - {self.date}"
+        return f"{self.medication_name} - {self.date}"

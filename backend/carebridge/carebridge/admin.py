@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Plan, Facility, Payment, Transaction, User, UserCounter, Staff, StaffCounter, ContactNote, CareRecord, MedicalRecord
+from .models import Plan, Facility, Payment, Transaction, User, UserCounter, Staff, StaffCounter, ContactNote, CareRecord, Prescription
 from django.db import models
 from django.forms import widgets
 
@@ -30,4 +30,4 @@ admin.site.register(StaffCounter)
 admin.site.register(ContactNote, ContactNoteAdmin)
 admin.site.register(CareRecord, CareRecordAdmin)
 
-admin.site.register(MedicalRecord)
+admin.site.register(Prescription)
