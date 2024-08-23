@@ -16,14 +16,31 @@ const FacilitiesManagement: React.FC = () => {
   const [facility, setFacility] = useState<Facility | null>(null);  // 施設情報の状態
   const [isEditing, setIsEditing] = useState<boolean>(false);  // 編集モードの状態
   const [errors, setErrors] = useState<{ [key: string]: string }>({});  // エラーメッセージ
+  const [staffFacilityId, setStaffFacilityId] = useState<number | null>(null);
+ // ログイン中のスタッフの施設IDを保存する状態
 
   useEffect(() => {
-    fetchFacility();
+    fetchStaffFacilityId(); // ログイン中のスタッフの施設IDを取得
   }, []);
 
-  const fetchFacility = async () => {
+  useEffect(() => {
+    if (staffFacilityId) {
+      fetchFacility(staffFacilityId); // 施設IDが取得できたら施設情報を取得
+    }
+  }, [staffFacilityId]);
+
+  const fetchStaffFacilityId = async () => {
     try {
-      const response = await axios.get<Facility>('http://localhost:8000/api/facilities/3/');  // IDが1の施設を取得
+      const response = await axios.get('http://localhost:8000/api/staffs/get_staff_facility_id/');  // ログイン中のスタッフの施設IDを取得するエンドポイント
+      setStaffFacilityId(response.data.facility_id); // 取得した施設IDを保存
+    } catch (error) {
+      console.error("施設IDの取得中にエラーが発生しました", error);
+    }
+  };
+
+  const fetchFacility = async (facilityId: number) => {
+    try {
+      const response = await axios.get<Facility>(`http://localhost:8000/api/facilities/${facilityId}/`);  // ログイン中のスタッフの施設情報を取得
       setFacility(response.data);  // 取得した施設情報をstateに保存
     } catch (error) {
       console.error("施設情報の取得中にエラーが発生しました", error);
@@ -68,9 +85,6 @@ const FacilitiesManagement: React.FC = () => {
   return (
     <div className="p-6 min-h-screen bg-gray-100">
       <h1 className="text-2xl font-bold mb-6">施設情報</h1>
-      <div className="mb-4 flex justify-between items-center">
-        <div></div>
-      </div>
       {facility && (
         <div className="flex flex-col items-start bg-white p-16 rounded-lg shadow-lg w-full max-w-none mx-auto">
           <div className="text-xl mb-4 w-full">

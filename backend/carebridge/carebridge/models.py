@@ -9,16 +9,6 @@ def validate_domain(value):
     if not value or '.' not in value:
         raise ValidationError("Enter a valid domain.")
 
-class Plan(models.Model):
-    id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=50)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    duration = models.CharField(max_length=50)  # 例: 'monthly', 'yearly'
-    description = models.TextField(null=True, blank=True)  # プランの説明
-
-    def __str__(self):
-        return self.name
-
 class Facility(models.Model):
     id = models.AutoField(primary_key=True)
     facility_name = models.CharField(max_length=20)
@@ -30,7 +20,7 @@ class Facility(models.Model):
     is_active = models.BooleanField(default=False)
     
     def save(self, *args, **kwargs):
-        if '@' in self.email:
+        if self.email and '@' in self.email:
             self.email_domain = self.email.split('@')[1]
         super().save(*args, **kwargs)
     
@@ -38,48 +28,29 @@ class Facility(models.Model):
         return self.facility_name
 
 class Payment(models.Model):
-    STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('succeeded', 'Succeeded'),
-        ('failed', 'Failed'),
-        ('canceled', 'Canceled'),
-    ]
-
     id = models.AutoField(primary_key=True)
     facility = models.ForeignKey(Facility, on_delete=models.CASCADE)
-    plan = models.ForeignKey(Plan, on_delete=models.SET_NULL, null=True)  # 料金プランの外部キー
     stripe_payment_method_id = models.CharField(max_length=255, unique=True, null=False)
     stripe_subscription_id = models.CharField(max_length=255, null=True)
     trial_end_date = models.DateField(null=True, blank=True)  # 無料試用期間の終了日
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='pending')  # choicesを追加
+    status = models.CharField(max_length=50, null=False)  # テキスト入力用に変更
 
     def __str__(self):
         return f"{self.facility.facility_name} - Payment"
 
 class Transaction(models.Model):
-    STATUS_CHOICES = [
-        ('trial', 'Trial'),
-        ('pending', 'Pending'),
-        ('succeeded', 'Succeeded'),
-        ('failed', 'Failed'),
-        ('canceled', 'Canceled'),
-        ('active', 'Active'),
-    ]
-    
     id = models.AutoField(primary_key=True)
     facility = models.ForeignKey(Facility, on_delete=models.CASCADE, null=False)
     payment = models.ForeignKey(Payment, on_delete=models.CASCADE, null=False)
     amount = models.DecimalField(max_digits=10, decimal_places=2, null=False)
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES, null=False)  # choicesを参照
+    status = models.CharField(max_length=50, null=False)  # テキスト入力用に変更
     stripe_transaction_id = models.CharField(max_length=255, unique=True, null=False)
     created_at = models.DateTimeField(default=timezone.now)
-    
+
     def __str__(self):
         return f"{self.facility.facility_name} - {self.status} - {self.created_at}"
-
-
 class User(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     firebase_uid = models.CharField(max_length=128, unique=True, blank=True)
