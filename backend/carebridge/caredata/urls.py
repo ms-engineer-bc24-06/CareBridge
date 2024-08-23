@@ -7,4 +7,5 @@ urlpatterns = [
     path('care-records/create/', create_care_record, name='create_care_record'),
     path('care-records/update/<int:id>/', update_care_record, name='update_care_record'),  # 更新用エンドポイント
     path('care-records/delete/<int:id>/', delete_care_record, name='delete_care_record'),  # 削除用エンドポイント
+    path('care-records/detail/<int:id>/', get_care_record_detail, name='get_care_record_detail'), # ケア詳細用エンドポイント
 ]
