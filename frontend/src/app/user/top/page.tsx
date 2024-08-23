@@ -29,7 +29,7 @@ const UserTop = () => {
           );
           setUserUuid(response.data.uuid);
         } catch (error) {
-          console.error("UUIDの取得中にエラーが発生しました", error);
+          console.error("UUIDの取得中にエラーが発生しました");
         }
       }
     });
@@ -156,17 +156,17 @@ const UserTop = () => {
             </span>
           </div>
         </Link>
-        <Link href="/announcements/register">
+        <Link href="/user/prescriptions">
           <div className="text-center flex flex-col items-center bg-white border border-gray-300 rounded-lg p-3 shadow hover:shadow-md md:w-[100px] md:h-[100px] w-[96px] h-[96px]">
             <img
-              src="/images/contactNotes_icon.png"
-              alt="お知らせ登録"
+              src="/images/prescriptions_icon.png"
+              alt="お薬ノート"
               className="h-8 mb-1"
             />
             <span className="text-sm text-gray-700">
-              医療情報
+              お薬
               <br />
-              登録
+              ノート
             </span>
           </div>
         </Link>
