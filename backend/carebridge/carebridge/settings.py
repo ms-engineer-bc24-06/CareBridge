@@ -10,6 +10,9 @@ load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Google Cloud Vision APIの認証情報を指定
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(BASE_DIR, 'credentials', 'dynamic-return-432614-f5-153197ccec68.json')
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
@@ -130,7 +133,7 @@ LOGGING = {
         # ルートロガーの設定
         '': {
             'handlers': ['console'],
-            'level': 'INFO',  # INFOレベル以上のログを出力
+            'level': 'DEBUG',  # DEBUGレベル以上のログを出力'INFO',  # INFOレベル以上のログを出力
             'propagate': True,
         },
     },
