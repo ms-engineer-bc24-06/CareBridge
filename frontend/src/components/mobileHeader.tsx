@@ -14,7 +14,7 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-header text-white p-4 flex justify-between items-center">
+    <header className="bg-header text-white p-3 flex justify-between items-center">
       <div className="flex items-center">
         {/* ロゴを表示 */}
         <Image

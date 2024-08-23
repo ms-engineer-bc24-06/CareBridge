@@ -5,7 +5,7 @@ import MobileHeader from "../../components/mobileHeader"; // MobileHeaderのイ�
 
 const UsersLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen">
       <MobileHeader />
 
       {/* 各ページのコンテンツを表示する部分 */}
