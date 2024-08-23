@@ -45,3 +45,6 @@ serviceAccountKey.json
 
 # OS-specific files：macOSがディレクトリごとに自動的に作成するもので、プロジェクトに必要のないファイル。
 .DS_Store
+
+# サービスアカウントのJSONファイル
+/backend/carebridge/credentials/*.json
