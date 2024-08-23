@@ -131,3 +131,14 @@ def get_prescriptions_by_user(request, uuid):
             return Response({"error": "該当する処方箋が見つかりませんでした"}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+@api_view(['GET'])
+def get_prescriptions_detail(request, id):
+    try:
+        prescription = Prescription.objects.get(id=id)
+        serializer = PrescriptionSerializer(prescription)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Prescription.DoesNotExist:
+        return Response({"error": "該当する処方箋が見つかりませんでした"}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
