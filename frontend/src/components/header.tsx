@@ -24,7 +24,7 @@ const Header = () => {
             setStaffName(response.data.staff_name);
           })
           .catch((error) => {
-            console.error("スタッフ情報の取得中にエラーが発生しました:", error);
+            console.error("スタッフ情報の取得中にエラーが発生しました:");
           });
       } else {
         console.error("ユーザーが認証されていません");
