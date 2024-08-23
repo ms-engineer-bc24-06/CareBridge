@@ -1,8 +1,6 @@
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
 from carebridge.models import Staff
 from .serializers import StaffSerializer
 from uuid import UUID
@@ -31,12 +29,20 @@ def get_staff_by_firebase_uid(request, firebase_uid):
     except Staff.DoesNotExist:
         return Response({"message": "職員が見つかりません"}, status=status.HTTP_404_NOT_FOUND)
 
+@api_view(['GET'])
+def get_staffs_by_facility(request, facility_id):
+    staffs = Staff.objects.filter(facility_id=facility_id)
+    serializer = StaffSerializer(staffs, many=True)
+    return Response(serializer.data)
+
 @api_view(['POST'])
 def create_staff(request):
+    print("Received data:", request.data)  # 受け取ったデータをログ出力
     serializer = StaffSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    print(serializer.errors)  # エラーメッセージを出力してデバッグ
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['PUT'])
@@ -59,12 +65,3 @@ def delete_staff(request, uuid):
         return Response(status=status.HTTP_204_NO_CONTENT)
     except Staff.DoesNotExist:
         return Response({"message": "職員が見つかりません"}, status=status.HTTP_404_NOT_FOUND)
-    
-@login_required
-def get_staff_facility_id(request):
-    try:
-        # ログインしているスタッフのfacility_idを取得
-        staff = Staff.objects.get(firebase_uid=request.user.firebase_uid)
-        return JsonResponse({'facility_id': staff.facility_id})
-    except Staff.DoesNotExist:
-        return JsonResponse({"message": "スタッフが見つかりません"}, status=404)

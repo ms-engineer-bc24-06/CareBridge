@@ -3,6 +3,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { getAuth } from 'firebase/auth';
 
 interface Staff {
   id?: number;  
@@ -44,25 +45,32 @@ const StaffsManagement: React.FC = () => {
   const [editStaff, setEditStaff] = useState<Staff | null>(null);  
   const [showAddForm, setShowAddForm] = useState<boolean>(false);  
   const [errors, setErrors] = useState<{ [key: string]: string }>({});  
-  const [staffFacilityId, setStaffFacilityId] = useState<number | null>(null);
-  
-  useEffect(() => {
-    // ログインしているスタッフの施設IDをサーバーから取得
-    const fetchStaffFacilityId = async () => {
+
+  // Firebaseから現在のユーザーのUIDを取得し、それに基づいてスタッフ情報を取得
+  const fetchStaffFacilityId = async () => {
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    if (user) {
       try {
-        const response = await axios.get('http://localhost:8000/api/staffs/get_staff_facility_id/'); 
-        setStaffFacilityId(response.data.facility_id);  // 取得した施設IDを状態に設定
-        setNewStaff(prevStaff => ({
-          ...prevStaff,
-          facility: response.data.facility_id
-        }));
+        // Firebase UIDを使ってスタッフ情報を取得
+        const response = await axios.get<Staff>(
+          `http://localhost:8000/api/staffs/firebase/${user.uid}/`
+        );
+
+        setUserFacilityId(response.data.facility);  // 取得した施設IDを状態に設定
+
+        // 施設IDを取得した後にすべてのスタッフ情報を取得
+        fetchStaffs(); 
+
       } catch (error) {
-        console.error("施設IDの取得中にエラーが発生しました", error);
+        console.error("スタッフ情報の取得中にエラーが発生しました:", error);
       }
-    };
-  
+    }
+  };
+
+  useEffect(() => {
     fetchStaffFacilityId();
-    fetchStaffs();
   }, []);
   
   useEffect(() => {
@@ -76,8 +84,8 @@ const StaffsManagement: React.FC = () => {
       );
     }
   }, [searchTerm, staffs]);
-  
-  // 職員データをサーバーから取得
+
+  // すべての職員データをサーバーから取得
   const fetchStaffs = async () => {
     try {
       const response = await axios.get<Staff[]>('http://localhost:8000/api/staffs/');
@@ -87,7 +95,6 @@ const StaffsManagement: React.FC = () => {
       console.error("職員の取得中にエラーが発生しました", error);
     }
   };
-
   // 職員を追加する処理
   const handleAddStaff = async () => {
     const validationErrors = validateForm(newStaff);
@@ -98,12 +105,14 @@ const StaffsManagement: React.FC = () => {
 
     try {
         const csrfToken = getCsrfToken(); 
-        const response = await axios.post('http://localhost:8000/firebaseManagement/create_staff_user/', {
+
+        // Firebaseにスタッフを作成
+        const firebaseResponse = await axios.post('http://localhost:8000/firebaseManagement/create_staff_user/', {
             display_name: newStaff.staff_name,
             email: newStaff.user_id,
             password: newStaff.password,
             staff_name_kana: newStaff.staff_name_kana,
-            facility: userFacilityId,  // ログインしているスタッフの施設IDを使用
+            facility: userFacilityId,
             is_admin: newStaff.is_admin
         }, {
             headers: {
@@ -111,28 +120,45 @@ const StaffsManagement: React.FC = () => {
             }
         });
 
-        if (response.status === 200) {
-            setStaffs([...staffs, response.data]);
-            setFilteredStaffs([...staffs, response.data]);
-            setNewStaff({
-                user_id: '',
-                password: '',
-                facility: userFacilityId ?? '',  // 初期値として空文字に設定
-                staff_name: '',
-                staff_name_kana: '',
-                is_admin: false
-            });
-            setConfirmPassword(''); 
-            setShowAddForm(false);
-            setErrors({});
-        } else {
-            console.error("サーバーでの職員作成に失敗しました", response.data);
-        }
-    } catch (error) {
-        console.error("サーバーでの職員作成に失敗しました", error);
-        setErrors({ api: "職員の作成に失敗しました。" });
-    }
-  };
+        if (firebaseResponse.status === 200) {
+            // Firebaseでの作成が成功したら、DjangoでPostgreSQLに保存
+            const dbResponse = await axios.post('http://localhost:8000/api/staffs/create/', {
+              firebase_uid: firebaseResponse.data.user_id,  // Firebaseで生成されたUIDを保存
+              facility: userFacilityId,
+              staff_name: newStaff.staff_name,
+              staff_name_kana: newStaff.staff_name_kana,
+              is_admin: newStaff.is_admin
+          }, {
+              headers: {
+                  'X-CSRFToken': csrfToken || ''
+              }
+          });
+
+          if (dbResponse.status === 201) {
+              setStaffs([...staffs, dbResponse.data]);
+              setFilteredStaffs([...staffs, dbResponse.data]);
+              setNewStaff({
+                  user_id: '',
+                  password: '',
+                  facility: userFacilityId ?? '',
+                  staff_name: '',
+                  staff_name_kana: '',
+                  is_admin: false
+              });
+              setConfirmPassword('');
+              setShowAddForm(false);
+              setErrors({});
+          } else {
+              console.error("DBにスタッフを保存する際にエラーが発生しました", dbResponse.data);
+          }
+      } else {
+          console.error("サーバーでの職員作成に失敗しました", firebaseResponse.data);
+      }
+  } catch (error) {
+      console.error("サーバーでの職員作成に失敗しました", error);
+      setErrors({ api: "職員の作成に失敗しました。" });
+  }
+};
 
   // 職員を編集する処理
   const handleEditStaff = (id: number) => {

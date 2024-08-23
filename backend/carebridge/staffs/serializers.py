@@ -4,4 +4,4 @@ from carebridge.models import Staff
 class StaffSerializer(serializers.ModelSerializer):
     class Meta:
         model = Staff
-        fields = '__all__'
+        fields = ['firebase_uid', 'facility', 'staff_name', 'staff_name_kana', 'is_admin'] 

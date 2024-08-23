@@ -17,7 +17,7 @@ def get_facility(request, id):
         serializer = FacilitySerializer(facility)
         return Response(serializer.data)
     except Facility.DoesNotExist:
-        return Response({"message": "施設が見つかりません"}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"message": "指定されたIDの施設が見つかりません"}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['POST'])
 def create_facility(request):
@@ -37,7 +37,7 @@ def update_facility(request, id):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     except Facility.DoesNotExist:
-        return Response({"message": "施設が見つかりません"}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"message": "指定されたIDの施設が見つかりません"}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['DELETE'])
 def delete_facility(request, id):
@@ -46,4 +46,4 @@ def delete_facility(request, id):
         facility.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     except Facility.DoesNotExist:
-        return Response({"message": "施設が見つかりません"}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"message": "指定されたIDの施設が見つかりません"}, status=status.HTTP_404_NOT_FOUND)
