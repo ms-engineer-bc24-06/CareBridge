@@ -7,5 +7,7 @@ urlpatterns = [
     path('check_firebase/', views.check_firebase, name='check_firebase'),  # Firebaseの状態を確認するエンドポイント
     path('register_family_member_user/', views.register_family_member_user, name='register_family_member_user'),  # 介護家族ユーザーを作成するエンドポイント
     path('create_staff_user/', views.create_staff_user, name='create_staff_user'),  # 職員ユーザーを作成するエンドポイント
+    # path('update_staff_user/', views.update_staff_user, name='update_staff_user'),
+    path('delete_staff_user/', views.delete_staff_user, name='delete_staff_user'),
     path('test-firebase/', views.test_firebase, name='test_firebase'),  #  Firebase　Admin SDKテストのために使用
 ]

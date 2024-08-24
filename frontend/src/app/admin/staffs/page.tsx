@@ -6,14 +6,22 @@ import axios from 'axios';
 import { getAuth } from 'firebase/auth';
 
 interface Staff {
-  id?: number;  
-  user_id: string;
+  uuid: string;  
+  staff_id: string;  // システム内部での識別子
+  user_id: string;  // Firebaseで使用するユーザーID（メールアドレス）
+  firebase_uid?: string;  // Firebase UID
   password: string;
+  confirmPassword: string;
   facility: string;
   staff_name: string;
   staff_name_kana: string;
   is_admin: boolean;  
 }
+
+// type NewStaff = Omit<Staff, 'uuid'> & {
+//   password: string;
+//   confirmPassword: string;
+// };
 
 // CSRFトークンを取得する関数
 const getCsrfToken = (): string | null => {
@@ -32,9 +40,12 @@ const StaffsManagement: React.FC = () => {
   const [staffs, setStaffs] = useState<Staff[]>([]);  
   const [filteredStaffs, setFilteredStaffs] = useState<Staff[]>([]);  
   const [newStaff, setNewStaff] = useState<Staff>({
+    uuid: '',
     user_id: '',
     password: '',
+    confirmPassword: '',
     facility: '',
+    staff_id: '',
     staff_name: '',
     staff_name_kana: '',
     is_admin: false
@@ -138,9 +149,12 @@ const StaffsManagement: React.FC = () => {
               setStaffs([...staffs, dbResponse.data]);
               setFilteredStaffs([...staffs, dbResponse.data]);
               setNewStaff({
+                  uuid: '',
                   user_id: '',
                   password: '',
+                  confirmPassword: '',
                   facility: userFacilityId ?? '',
+                  staff_id:'',
                   staff_name: '',
                   staff_name_kana: '',
                   is_admin: false
@@ -160,22 +174,20 @@ const StaffsManagement: React.FC = () => {
   }
 };
 
-  // 職員を編集する処理
+// 職員を編集する処理
+const handleEditStaffClick = (staff: Staff) => {
+  console.log("Staff object:", staff);
+  if (!staff.uuid) {
+    console.error("The staff object does not contain a uuid.");
+    return;
+  }
+  setEditStaff(staff); // 選択された職員を編集用に設定
+};
+
   const handleEditStaff = (id: number) => {
-    const staffToEdit = staffs.find(staff => staff.id === id);
+    const staffToEdit = staffs.find(staff => staff.uuid === editStaff!.uuid);
     if (staffToEdit) {
       setEditStaff(staffToEdit);  
-    }
-  };
-
-    // 職員を削除する処理
-  const handleDeleteStaff = async (id: number) => {
-    try {
-      await axios.delete(`http://localhost:8000/api/staffs/${id}/`);
-      setStaffs(staffs.filter(staff => staff.id !== id));  
-      setFilteredStaffs(staffs.filter(staff => staff.id !== id));  
-    } catch (error) {
-      console.error("職員の削除中にエラーが発生しました", error);
     }
   };
 
@@ -188,15 +200,65 @@ const StaffsManagement: React.FC = () => {
     }
 
     try {
-      const response = await axios.put(`http://localhost:8000/api/staffs/${editStaff!.id}/`, editStaff!);
-      setStaffs(staffs.map(staff => (staff.id === editStaff!.id ? response.data : staff)));  
-      setFilteredStaffs(staffs.map(staff => (staff.id === editStaff!.id ? response.data : staff))); 
+      const response = await axios.put(`http://localhost:8000/api/staffs/${editStaff!.uuid}/`, editStaff!);
+      setStaffs(staffs.map(staff => (staff.uuid === editStaff!.uuid ? response.data : staff)));  
+      setFilteredStaffs(staffs.map(staff => (staff.uuid === editStaff!.uuid ? response.data : staff))); 
       setEditStaff(null);  
       setErrors({});
     } catch (error) {
       console.error("職員の更新中にエラーが発生しました", error);
     }
   };
+
+  // 職員を削除する処理
+const handleDeleteStaff = async (uuid: string | undefined) => {
+  try {
+    if (!uuid) {
+      console.error("Invalid UUID: ", uuid);
+      return;
+    }
+
+    const staffToDelete = staffs.find(staff => staff.uuid === uuid);
+    if (!staffToDelete) {
+      console.error("Staff not found for UUID: ", uuid);
+      return;
+    }
+    
+    console.log("Deleting staff with UUID: ", uuid); // デバッグ用
+
+    const csrfToken = getCsrfToken();
+
+    // まずDjangoのデータベースから削除
+    await axios.delete(`http://localhost:8000/api/staffs/${uuid}/delete/`, {
+      headers: {
+        'X-CSRFToken': csrfToken || ''
+      }
+    });
+
+    // 次にFirebaseから削除
+    if (staffToDelete.firebase_uid) {
+      await axios.delete(`http://localhost:8000/firebaseManagement/delete_staff_user/`, {
+        data: {
+          firebase_uid: staffToDelete.firebase_uid
+        },
+        headers: {
+          'X-CSRFToken': csrfToken || ''
+        }
+      });
+      console.log("Staff deleted from Firebase"); // デバッグ用
+    } else {
+      console.warn("Firebase UID not found for staff: ", uuid);
+    }
+
+    setStaffs(prevStaffs => prevStaffs.filter(staff => staff.uuid !== uuid));
+    setFilteredStaffs(prevFilteredStaffs => prevFilteredStaffs.filter(staff => staff.uuid !== uuid));
+
+    console.log("Staff removed from state"); // デバッグ用
+  } catch (error) {
+    console.error("職員の削除中にエラーが発生しました", error);
+  }
+};
+
 
   // パスワードの表示/非表示を切り替える処理
   const togglePasswordVisibility = () => {
@@ -250,8 +312,8 @@ const StaffsManagement: React.FC = () => {
         </thead>
         <tbody>
           {filteredStaffs.map(staff => (
-            <tr key={staff.id}>
-              <td className="py-2 px-4 border-b">{staff.id}</td>
+            <tr key={staff.staff_id}>
+              <td className="py-2 px-4 border-b">{staff.staff_id}</td>
               <td className="py-2 px-4 border-b">{staff.staff_name}</td>
               <td className="py-2 px-4 border-b">
                 <input
@@ -262,8 +324,16 @@ const StaffsManagement: React.FC = () => {
                 />
               </td>
               <td className="py-2 px-4 border-b flex space-x-2">
-                <button onClick={() => handleEditStaff(staff.id as number)} className="bg-yellow-500 text-white px-4 py-2 rounded">編集</button>
-                <button onClick={() => handleDeleteStaff(staff.id as number)} className="bg-red-500 text-white px-4 py-2 rounded">削除</button>
+              <button onClick={() => handleEditStaffClick(staff)} className="bg-yellow-500 text-white px-4 py-2 rounded">編集</button>
+                <button 
+                  onClick={() => {
+                    console.log("Delete button clicked for staff: ", staff.staff_id); // デバッグ用
+                    handleDeleteStaff(staff.uuid);
+                  }} 
+                  className="bg-red-500 text-white px-4 py-2 rounded"
+                >
+                  削除
+                </button>
               </td>
             </tr>
           ))}

@@ -102,3 +102,13 @@ def register_family_member_user(request):
         # エラー発生時のログ出力
         logger.error(f"Error creating family member user: {str(e)}")
         return JsonResponse({'error': str(e)}, status=500)
+
+@csrf_exempt
+def delete_staff_user(request):
+    try:
+        data = json.loads(request.body)
+        firebase_uid = data.get('firebase_uid')
+        auth.delete_user(firebase_uid)
+        return JsonResponse({'message': 'Staff user deleted successfully'}, status=200)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)  
