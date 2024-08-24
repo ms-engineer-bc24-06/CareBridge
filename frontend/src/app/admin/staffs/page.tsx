@@ -7,7 +7,7 @@ import { getAuth } from 'firebase/auth';
 
 interface Staff {
   uuid: string;  
-  staff_id: string;  // システム内部での識別子
+  staff_id?: string;  // システム内部での識別子
   user_id: string;  // Firebaseで使用するユーザーID（メールアドレス）
   firebase_uid?: string;  // Firebase UID
   password: string;
@@ -45,7 +45,6 @@ const StaffsManagement: React.FC = () => {
     password: '',
     confirmPassword: '',
     facility: '',
-    staff_id: '',
     staff_name: '',
     staff_name_kana: '',
     is_admin: false
@@ -154,7 +153,6 @@ const StaffsManagement: React.FC = () => {
                   password: '',
                   confirmPassword: '',
                   facility: userFacilityId ?? '',
-                  staff_id:'',
                   staff_name: '',
                   staff_name_kana: '',
                   is_admin: false
