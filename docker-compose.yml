@@ -30,8 +30,10 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - DB_HOST=db
       - DB_PORT=5432
+      - MEMCACHED_HOST=memcached # Memcachedのホストを設定
     depends_on:
       - db
+      - memcached # Memcachedサービスに依存関係を追加
     command: python carebridge/manage.py runserver 0.0.0.0:8000
 
   db:
@@ -44,6 +46,13 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+
+  memcached: #キャッシュサーバー
+    image: memcached:latest
+    ports:
+      - "11211:11211"
+    networks:
+      - default
 
 networks:
   default:
