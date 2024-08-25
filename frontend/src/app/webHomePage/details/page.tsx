@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import Header from '../../../components/header'; 
+import WebPageHeader from '../../../components/WebPageHeader'; 
 import WebHomePageMenuBar from '../../../components/webHomePageMenuBar'; 
 import { useRouter } from 'next/navigation';
 
@@ -14,7 +14,7 @@ const Details: React.FC = () => {
 
   return (
     <div>
-      <Header />  {/* ヘッダーを表示 */}
+      <WebPageHeader />  {/* ヘッダーを表示 */}
       <WebHomePageMenuBar /> {/* WebHomePageMenuBarを表示 */}
       
       {/* 背景画像セクション */}
