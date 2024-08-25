@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import axios from 'axios';
 import Link from "next/link";
+import { getAuth } from 'firebase/auth';
 
 // ユーザー情報の型定義
 interface User {
@@ -29,10 +30,11 @@ const UsersManagement: React.FC = () => {
   const [newUser, setNewUser] = useState<User | null>(null);
   const [editUser, setEditUser] = useState<User | null>(null);  
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
-  const [errors, setErrors] = useState<{ [key: string]: string }>({}); 
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [userFacilityId, setUserFacilityId] = useState<string>('');
 
   useEffect(() => {
-    fetchUsers();
+    fetchUserFacilityId();  // Firebase UIDを取得して施設IDを取得する
   }, []);
 
   useEffect(() => {
@@ -48,15 +50,36 @@ const UsersManagement: React.FC = () => {
     }
   }, [searchTerm, users]);
 
-  const fetchUsers = async () => {
-    try {
-      const response = await axios.get<User[]>('http://localhost:8000/api/users/');
-      setUsers(response.data);  
-      setFilteredUsers(response.data);  
-    } catch (error) {
-      console.error("ユーザーの取得中にエラーが発生しました", error);
+  const fetchUserFacilityId = async () => {
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    if (user) {
+      try {
+        // Firebase UIDを使ってスタッフの施設IDを取得
+        const response = await axios.get<{ facility: string }>(`http://localhost:8000/api/staffs/firebase/${user.uid}/`);
+        setUserFacilityId(response.data.facility);
+  
+        // 施設IDとFirebase UIDをfetchUsers関数に渡す
+        fetchUsers(response.data.facility, user.uid);  
+      } catch (error) {
+        console.error("施設IDの取得中にエラーが発生しました", error);
+      }
     }
   };
+  
+  const fetchUsers = async (facilityId: string, firebaseUid: string) => {
+    try {
+        const response = await axios.get<User[]>(`http://localhost:8000/api/users/`, {
+            params: { firebase_uid: firebaseUid }
+        });
+        setUsers(response.data);  
+        setFilteredUsers(response.data);  
+    } catch (error) {
+        console.error("ユーザーの取得中にエラーが発生しました", error);
+    }
+};
+
 
   const handleAddUser = async () => {
     if (newUser) {
@@ -81,6 +104,7 @@ const UsersManagement: React.FC = () => {
                 ...newUser,
                 uuid: firebaseResponse.data.user_id,  // FirebaseのUIDを使用
                 user_id: generateCustomUserId(),
+                facility: userFacilityId  // 施設IDを追加
             };
 
             // ユーザーをデータベースに保存
