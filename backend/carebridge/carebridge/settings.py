@@ -84,6 +84,21 @@ DATABASES = {
     }
 }
 
+# キャッシュ設定
+if DEBUG:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        }
+    }
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+            'LOCATION': f"{os.getenv('MEMCACHED_HOST', 'memcached')}:11211",
+        }
+    }
+
 # CORSとCSRF設定の追加
 CORS_ALLOWED_ORIGINS= [
     'http://localhost:3000'
