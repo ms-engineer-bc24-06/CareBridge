@@ -3,7 +3,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from carebridge.models import User, Staff
 from .serializers import UserSerializer
-from uuid import UUID
+from django.core.cache import cache
 
 @api_view(['GET'])
 def get_users(request):
@@ -12,6 +12,14 @@ def get_users(request):
         firebase_uid = request.GET.get('firebase_uid')
         if not firebase_uid:
             return Response({"error": "Firebase UIDが必要です"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # キャッシュキーを生成
+        cache_key = f"users_{firebase_uid}"
+
+        # キャッシュからユーザーリストを取得
+        cached_users = cache.get(cache_key)
+        if cached_users:
+            return Response(cached_users)
 
         # Firebase UIDからスタッフ情報を取得
         try:
@@ -22,6 +30,11 @@ def get_users(request):
         # スタッフの施設に紐づくユーザーを取得
         users = User.objects.filter(facility=staff.facility)
         serializer = UserSerializer(users, many=True)
+        response_data = serializer.data
+
+        # キャッシュに保存（15分間）
+        cache.set(cache_key, response_data, 60 * 15)
+
         return Response(serializer.data)
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
