@@ -209,53 +209,53 @@ const handleEditStaffClick = (staff: Staff) => {
   };
 
   // 職員を削除する処理
-const handleDeleteStaff = async (uuid: string | undefined) => {
-  try {
-    if (!uuid) {
-      console.error("Invalid UUID: ", uuid);
-      return;
-    }
-
-    const staffToDelete = staffs.find(staff => staff.uuid === uuid);
-    if (!staffToDelete) {
-      console.error("Staff not found for UUID: ", uuid);
-      return;
-    }
-    
-    console.log("Deleting staff with UUID: ", uuid); // デバッグ用
-
-    const csrfToken = getCsrfToken();
-
-    // まずDjangoのデータベースから削除
-    await axios.delete(`http://localhost:8000/api/staffs/${uuid}/delete/`, {
-      headers: {
-        'X-CSRFToken': csrfToken || ''
+  const handleDeleteStaff = async (uuid: string | undefined) => {
+    try {
+      if (!uuid) {
+        console.error("Invalid UUID: ", uuid);
+        return;
       }
-    });
 
-    // 次にFirebaseから削除
-    if (staffToDelete.firebase_uid) {
-      await axios.delete(`http://localhost:8000/firebaseManagement/delete_staff_user/`, {
-        data: {
-          firebase_uid: staffToDelete.firebase_uid
-        },
+      const staffToDelete = staffs.find(staff => staff.uuid === uuid);
+      if (!staffToDelete) {
+        console.error("Staff not found for UUID: ", uuid);
+        return;
+      }
+      
+      console.log("Deleting staff with UUID: ", uuid); // デバッグ用
+
+      const csrfToken = getCsrfToken();
+
+      // まずDjangoのデータベースから削除
+      await axios.delete(`http://localhost:8000/api/staffs/${uuid}/delete/`, {
         headers: {
           'X-CSRFToken': csrfToken || ''
         }
       });
-      console.log("Staff deleted from Firebase"); // デバッグ用
-    } else {
-      console.warn("Firebase UID not found for staff: ", uuid);
+
+      // 次にFirebaseから削除
+      if (staffToDelete.firebase_uid) {
+        await axios.delete(`http://localhost:8000/firebaseManagement/delete_staff_user/`, {
+          data: {
+            firebase_uid: staffToDelete.firebase_uid
+          },
+          headers: {
+            'X-CSRFToken': csrfToken || ''
+          }
+        });
+        console.log("Staff deleted from Firebase"); // デバッグ用
+      } else {
+        console.warn("Firebase UID not found for staff: ", uuid);
+      }
+
+      setStaffs(prevStaffs => prevStaffs.filter(staff => staff.uuid !== uuid));
+      setFilteredStaffs(prevFilteredStaffs => prevFilteredStaffs.filter(staff => staff.uuid !== uuid));
+
+      console.log("Staff removed from state"); // デバッグ用
+    } catch (error) {
+      console.error("職員の削除中にエラーが発生しました", error);
     }
-
-    setStaffs(prevStaffs => prevStaffs.filter(staff => staff.uuid !== uuid));
-    setFilteredStaffs(prevFilteredStaffs => prevFilteredStaffs.filter(staff => staff.uuid !== uuid));
-
-    console.log("Staff removed from state"); // デバッグ用
-  } catch (error) {
-    console.error("職員の削除中にエラーが発生しました", error);
-  }
-};
+  };
 
 
   // パスワードの表示/非表示を切り替える処理

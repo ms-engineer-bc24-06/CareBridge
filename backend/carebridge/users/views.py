@@ -50,12 +50,19 @@ def get_user(request, uuid):
 
 @api_view(['POST'])
 def create_user(request):
-    serializer = UserSerializer(data=request.data)
+    data = request.data.copy()
+    
+    # user_id を自動生成（もしくは save メソッド内で生成される場合は不要）
+    # data['user_id'] = generate_user_id()  # 必要に応じて実装
+    
+    serializer = UserSerializer(data=data)
     if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+        user = serializer.save()
+        return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
+    else:
+        print("Serializer errors:", serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 @api_view(['PUT'])
 def update_user(request, uuid):
     try:

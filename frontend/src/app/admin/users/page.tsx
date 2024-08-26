@@ -23,6 +23,12 @@ interface User {
   confirmPassword?: string; // 新規登録時のみ必要
 }
 
+// CSRFトークンを取得する関数
+const getCsrfToken = (): string | null => {
+  const csrfTokenMeta = document.querySelector('meta[name="csrf-token"]');
+  return csrfTokenMeta ? csrfTokenMeta.getAttribute('content') : null;
+};
+
 const UsersManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>(''); 
   const [users, setUsers] = useState<User[]>([]); 
@@ -53,7 +59,7 @@ const UsersManagement: React.FC = () => {
   const fetchUserFacilityId = async () => {
     const auth = getAuth();
     const user = auth.currentUser;
-
+  
     if (user) {
       try {
         // Firebase UIDを使ってスタッフの施設IDを取得
@@ -63,67 +69,87 @@ const UsersManagement: React.FC = () => {
         // 施設IDとFirebase UIDをfetchUsers関数に渡す
         fetchUsers(response.data.facility, user.uid);  
       } catch (error) {
-        console.error("施設IDの取得中にエラーが発生しました", error);
+        console.error("施設IDの取得中にエラーが発生しました", (error as Error).message);
       }
     }
   };
   
   const fetchUsers = async (facilityId: string, firebaseUid: string) => {
     try {
-        const response = await axios.get<User[]>(`http://localhost:8000/api/users/`, {
-            params: { firebase_uid: firebaseUid }
-        });
-        setUsers(response.data);  
-        setFilteredUsers(response.data);  
+      const response = await axios.get<User[]>(`http://localhost:8000/api/users/`, {
+        params: { firebase_uid: firebaseUid }
+      });
+      setUsers(response.data);  
+      setFilteredUsers(response.data);  
     } catch (error) {
-        console.error("ユーザーの取得中にエラーが発生しました", error);
+      console.error("ユーザーの取得中にエラーが発生しました", (error as Error).message);
     }
-};
-
-
+  };
+  
   const handleAddUser = async () => {
     if (newUser) {
-        const validationErrors = validateForm(newUser);
-        if (Object.keys(validationErrors).length > 0) {
-            setErrors(validationErrors);
-            return;
+      const validationErrors = validateForm(newUser);
+      if (Object.keys(validationErrors).length > 0) {
+        setErrors(validationErrors);
+        return;
+      }
+  
+      try {
+        const csrfToken = getCsrfToken();
+  
+        // Firebaseにユーザーを登録
+        const firebaseResponse = await axios.post('http://localhost:8000/firebaseManagement/register_family_member_user/', {
+          display_name: newUser.user_name,
+          email: newUser.email,
+          password: newUser.password,
+        }, {
+          headers: {
+            'X-CSRFToken': csrfToken || ''
+          }
+        });
+  
+        console.log('Firebase Response:', firebaseResponse.data);
+  
+        // Firebaseで取得したUIDを使用して新しいユーザーデータを作成
+        const userData = {
+          firebase_uid: firebaseResponse.data.user_id,  // FirebaseのUIDを使用
+          user_name: newUser.user_name,
+          user_name_kana: newUser.user_name_kana,
+          user_sex: newUser.user_sex,
+          user_birthday: newUser.user_birthday,
+          emergency_contact_name: newUser.emergency_contact_name,
+          emergency_contact_phone: newUser.emergency_contact_phone,
+          emergency_contact_relationship: newUser.emergency_contact_relationship,
+          allergies: newUser.allergies,
+          medications: newUser.medications,
+          medical_history: newUser.medical_history,
+          facility: userFacilityId  // 施設IDを追加
+        };
+  
+        // ユーザーをPostgreSQLデータベースに保存
+        const response = await axios.post('http://localhost:8000/api/users/create/', userData, {
+          headers: {
+            'X-CSRFToken': csrfToken || ''
+          }
+        });
+  
+        console.log('PostgreSQL Response:', response.data);
+  
+        setUsers([...users, response.data]);
+        setFilteredUsers([...users, response.data]);
+        setNewUser(null);
+        setShowAddForm(false);
+        setErrors({});
+      } catch (error) {
+        console.error("ユーザーの追加中にエラーが発生しました", (error as Error).message);
+        if ((error as any).response) {
+          console.error("Error response:", (error as any).response.data);
         }
-
-        try {
-            // Firebaseにユーザーを登録するリクエストを送信
-            const firebaseResponse = await axios.post('http://localhost:8000/firebaseManagement/register_family_member_user/', {
-                display_name: newUser.user_name,
-                email: newUser.email,
-                password: newUser.password,
-            });
-
-            console.log('Firebase Response:', firebaseResponse.data);
-
-            // Firebaseで取得したUIDを使用して新しいユーザーを作成
-            const userData = {
-                ...newUser,
-                uuid: firebaseResponse.data.user_id,  // FirebaseのUIDを使用
-                user_id: generateCustomUserId(),
-                facility: userFacilityId  // 施設IDを追加
-            };
-
-            // ユーザーをデータベースに保存
-            const response = await axios.post('http://localhost:8000/api/users/', userData);
-
-            console.log('Response:', response.data);
-
-            setUsers([...users, response.data]); 
-            setFilteredUsers([...users, response.data]); 
-            setNewUser(null);  
-            setShowAddForm(false);  
-            setErrors({});  
-        } catch (error) {
-            console.error("ユーザーの追加中にエラーが発生しました", error);
-            setErrors({ api: "ユーザーの追加に失敗しました。" });
-        }
+        setErrors({ api: "ユーザーの追加に失敗しました。" });
+      }
     }
-};
-
+  };
+  
 
   const generateCustomUserId = (): string => {
     return Math.floor(10000000 + Math.random() * 90000000).toString();  
@@ -153,16 +179,6 @@ const UsersManagement: React.FC = () => {
     }
   };
 
-  const handleDeleteUser = async (userId: string) => {
-    try {
-      await axios.delete(`http://localhost:8000/api/users/${userId}/`);
-      setUsers(users.filter(user => user.user_id !== userId));  
-      setFilteredUsers(users.filter(user => user.user_id !== userId));  
-    } catch (error) {
-      console.error("ユーザーの削除中にエラーが発生しました", error);
-    }
-  };
-
   const handleUpdateUser = async () => {
     if (editUser) {
       const validationErrors = validateForm(editUser);
@@ -172,7 +188,7 @@ const UsersManagement: React.FC = () => {
       }
 
       try {
-        const response = await axios.put(`http://localhost:8000/api/users/${editUser.uuid}/`, editUser);
+        const response = await axios.put(`http://localhost:8000/api/users/${editUser.uuid}/update/`, editUser);
         setUsers(users.map(user => (user.uuid === editUser.uuid ? response.data : user)));  
         setFilteredUsers(users.map(user => (user.uuid === editUser.uuid ? response.data : user))); 
         setEditUser(null);  
@@ -180,6 +196,16 @@ const UsersManagement: React.FC = () => {
       } catch (error) {
         console.error("ユーザーの更新中にエラーが発生しました", error);
       }
+    }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      await axios.delete(`http://localhost:8000/api/users/${userId}/delete/`);
+      setUsers(users.filter(user => user.user_id !== userId));  
+      setFilteredUsers(users.filter(user => user.user_id !== userId));  
+    } catch (error) {
+      console.error("ユーザーの削除中にエラーが発生しました", error);
     }
   };
 
