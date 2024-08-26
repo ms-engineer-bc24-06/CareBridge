@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from carebridge.models import User, Staff
 from .serializers import UserSerializer
 from django.core.cache import cache
+from uuid import UUID
 
 @api_view(['GET'])
 def get_users(request):
@@ -62,7 +63,15 @@ def create_user(request):
     else:
         print("Serializer errors:", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
+@api_view(['GET'])
+def get_user_uuid_by_firebase_uid(request, firebase_uid):
+    try:
+        user = User.objects.get(firebase_uid=firebase_uid)
+        return Response({"uuid": str(user.uuid)})
+    except User.DoesNotExist:
+        return Response({"error": "ユーザーが見つかりません"}, status=404)
+
 @api_view(['PUT'])
 def update_user(request, uuid):
     try:
@@ -78,16 +87,21 @@ def update_user(request, uuid):
 @api_view(['DELETE'])
 def delete_user(request, uuid):
     try:
-        user = User.objects.get(uuid=uuid)  # ここでUUIDの再変換は不要
+        print(f"Attempting to delete user with UUID: {uuid}")
+        # UUIDが文字列で渡されている場合のみUUIDオブジェクトに変換
+        if isinstance(uuid, str):
+            uuid = UUID(uuid)
+        
+        user = User.objects.get(uuid=uuid)
         user.delete()
+        print(f"User with UUID {uuid} deleted successfully")
         return Response(status=status.HTTP_204_NO_CONTENT)
+    except ValueError:
+        print(f"Invalid UUID format: {uuid}")
+        return Response({"message": "無効なUUID形式です"}, status=status.HTTP_400_BAD_REQUEST)
     except User.DoesNotExist:
-        return Response({"ユーザーが見つかりません"}, status=404)
-
-@api_view(['GET'])
-def get_user_uuid_by_firebase_uid(request, firebase_uid):
-    try:
-        user = User.objects.get(firebase_uid=firebase_uid)
-        return Response({"uuid": str(user.uuid)})
-    except User.DoesNotExist:
-        return Response({"error": "ユーザーが見つかりません"}, status=404)
+        print(f"User with UUID {uuid} not found")
+        return Response({"message": "スタッフが見つかりません"}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        print(f"Error deleting user with UUID {uuid}: {str(e)}")
+        return Response({"message": f"削除中にエラーが発生しました: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

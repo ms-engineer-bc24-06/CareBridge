@@ -8,6 +8,7 @@ import { getAuth } from 'firebase/auth';
 interface User {
   uuid: string;
   user_id: string;
+  firebase_uid?: string;
   user_name: string;
   user_name_kana: string;
   user_sex: string;
@@ -199,15 +200,54 @@ const UsersManagement: React.FC = () => {
     }
   };
 
-  const handleDeleteUser = async (userId: string) => {
+  // ユーザーの削除
+  const handleDeleteUser = async (uuid: string | undefined) => {
     try {
-      await axios.delete(`http://localhost:8000/api/users/${userId}/delete/`);
-      setUsers(users.filter(user => user.user_id !== userId));  
-      setFilteredUsers(users.filter(user => user.user_id !== userId));  
+      if (!uuid) {
+        console.error("Invalid UUID: ", uuid);
+        return;
+      }
+  
+      const userToDelete = users.find(user => user.uuid === uuid);
+      if (!userToDelete) {
+        console.error("User not found for UUID: ", uuid);
+        return;
+      }
+  
+      console.log("Deleting user with UUID: ", uuid); // デバッグ用
+  
+      const csrfToken = getCsrfToken();
+  
+      // まずDjangoのデータベースから削除
+      await axios.delete(`http://localhost:8000/api/users/${uuid}/delete/`, {
+        headers: {
+          'X-CSRFToken': csrfToken || ''
+        }
+      });
+  
+      // 次にFirebaseから削除
+      if (userToDelete.firebase_uid) {
+        await axios.delete(`http://localhost:8000/firebaseManagement/delete_user/`, {
+          data: {
+            firebase_uid: userToDelete.firebase_uid
+          },
+          headers: {
+            'X-CSRFToken': csrfToken || ''
+          }
+        });
+        console.log("User deleted from Firebase"); // デバッグ用
+      } else {
+        console.warn("Firebase UID not found for user: ", uuid);
+      }
+  
+      setUsers(prevUsers => prevUsers.filter(user => user.uuid !== uuid));
+      setFilteredUsers(prevFilteredUsers => prevFilteredUsers.filter(user => user.uuid !== uuid));
+  
+      console.log("User removed from state"); // デバッグ用
     } catch (error) {
       console.error("ユーザーの削除中にエラーが発生しました", error);
     }
-  };
+  };  
 
   const handlePhoneInput = (
     e: React.ChangeEvent<HTMLInputElement>, 
@@ -289,8 +329,8 @@ const UsersManagement: React.FC = () => {
               </td>
               <td className="py-2 px-4 border-b">{user.user_name_kana}</td>
               <td className="py-2 px-4 border-b flex space-x-2">
-                <button onClick={() => handleEditUser(user.user_id)} className="bg-yellow-500 text-white px-4 py-2 rounded">編集</button>
-                <button onClick={() => handleDeleteUser(user.user_id)} className="bg-red-500 text-white px-4 py-2 rounded">削除</button>
+                <button onClick={() => handleEditUser(user.uuid)} className="bg-yellow-500 text-white px-4 py-2 rounded">編集</button>
+                <button onClick={() => handleDeleteUser(user.uuid)} className="bg-red-500 text-white px-4 py-2 rounded">削除</button>
               </td>
             </tr>
           ))}

@@ -97,7 +97,17 @@ def delete_staff_user(request):
         auth.delete_user(firebase_uid)
         return JsonResponse({'message': 'Staff user deleted successfully'}, status=200)
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)  
+        return JsonResponse({'error': str(e)}, status=500) 
+
+@csrf_exempt
+def delete_user(request):
+    try:
+        data = json.loads(request.body)
+        firebase_uid = data.get('firebase_uid')
+        auth.delete_user(firebase_uid)
+        return JsonResponse({'message': 'User deleted successfully'}, status=200)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500) 
 
 # Firebase Admin SDKが正しく機能しているかをテストする関数：不要になった場合、将来的に削除しても良い
 def test_firebase(request):

@@ -9,5 +9,6 @@ urlpatterns = [
     path('create_staff_user/', views.create_staff_user, name='create_staff_user'),  # 職員ユーザーを作成するエンドポイント
     # path('update_staff_user/', views.update_staff_user, name='update_staff_user'),
     path('delete_staff_user/', views.delete_staff_user, name='delete_staff_user'),
+    path('delete_user/', views.delete_user, name='delete_user'),
     path('test-firebase/', views.test_firebase, name='test_firebase'),  #  Firebase　Admin SDKテストのために使用
 ]
