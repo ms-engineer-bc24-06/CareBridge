@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from carebridge.models import Facility
+from carebridge.models import Facility, Staff
 from .serializers import FacilitySerializer
 
 @api_view(['GET'])
@@ -47,3 +47,16 @@ def delete_facility(request, id):
         return Response(status=status.HTTP_204_NO_CONTENT)
     except Facility.DoesNotExist:
         return Response({"message": "指定されたIDの施設が見つかりません"}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['GET'])
+def get_staff_facility_id(request):
+    firebase_uid = request.query_params.get('firebase_uid', None)
+    if not firebase_uid:
+        return Response({"message": "firebase_uidが指定されていません"}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        staff = Staff.objects.get(firebase_uid=firebase_uid)
+        facility_id = staff.facility.id
+        return Response({"facility_id": facility_id})
+    except Staff.DoesNotExist:
+        return Response({"message": "指定されたUIDのスタッフが見つかりません"}, status=status.HTTP_404_NOT_FOUND)
