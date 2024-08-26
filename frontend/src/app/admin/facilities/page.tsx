@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { getAuth, onAuthStateChanged } from "firebase/auth"; // Firebase Authのインポート
 
 // Facilityインターフェースの定義
 interface Facility {
@@ -16,11 +17,18 @@ const FacilitiesManagement: React.FC = () => {
   const [facility, setFacility] = useState<Facility | null>(null);  // 施設情報の状態
   const [isEditing, setIsEditing] = useState<boolean>(false);  // 編集モードの状態
   const [errors, setErrors] = useState<{ [key: string]: string }>({});  // エラーメッセージ
-  const [staffFacilityId, setStaffFacilityId] = useState<number | null>(null);
- // ログイン中のスタッフの施設IDを保存する状態
+  const [staffFacilityId, setStaffFacilityId] = useState<number | null>(null); // ログイン中のスタッフの施設IDを保存する状態
 
   useEffect(() => {
-    fetchStaffFacilityId(); // ログイン中のスタッフの施設IDを取得
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const uid = user.uid; // Firebaseから取得したユーザーUID
+        fetchStaffFacilityId(uid); // UIDを利用して施設IDを取得
+      } else {
+        console.error("ユーザーがログインしていません");
+      }
+    });
   }, []);
 
   useEffect(() => {
@@ -29,9 +37,9 @@ const FacilitiesManagement: React.FC = () => {
     }
   }, [staffFacilityId]);
 
-  const fetchStaffFacilityId = async () => {
+  const fetchStaffFacilityId = async (uid: string) => {
     try {
-      const response = await axios.get('http://localhost:8000/api/staffs/get_staff_facility_id/');  // ログイン中のスタッフの施設IDを取得するエンドポイント
+      const response = await axios.get(`http://localhost:8000/api/staffs/get_staff_facility_id/?firebase_uid=${uid}`);  // UIDをクエリパラメータとして施設IDを取得するエンドポイント
       setStaffFacilityId(response.data.facility_id); // 取得した施設IDを保存
     } catch (error) {
       console.error("施設IDの取得中にエラーが発生しました", error);

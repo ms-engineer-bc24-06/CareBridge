@@ -52,20 +52,6 @@ def create_staff_user(request):
         logger.error(f"Error creating staff user: {str(e)}")
         return JsonResponse({'error': str(e)}, status=500)
     
-    
-# Firebase Admin SDKが正しく機能しているかをテストする関数：不要になった場合、将来的に削除しても良い
-def test_firebase(request):
-    try:
-        # テスト用に特定のユーザーのUIDを使います（ Firebaseに登録されてる'ami@example.com'を使用）
-        user = auth.get_user_by_email('ami@example.com') 
-        return JsonResponse({
-            'uid': user.uid,
-            'email': user.email,
-            'display_name': user.display_name
-        })
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-
 @csrf_exempt
 def register_family_member_user(request):
     try:
@@ -101,4 +87,37 @@ def register_family_member_user(request):
     except Exception as e:
         # エラー発生時のログ出力
         logger.error(f"Error creating family member user: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=500)
+
+@csrf_exempt
+def delete_staff_user(request):
+    try:
+        data = json.loads(request.body)
+        firebase_uid = data.get('firebase_uid')
+        auth.delete_user(firebase_uid)
+        return JsonResponse({'message': 'Staff user deleted successfully'}, status=200)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500) 
+
+@csrf_exempt
+def delete_user(request):
+    try:
+        data = json.loads(request.body)
+        firebase_uid = data.get('firebase_uid')
+        auth.delete_user(firebase_uid)
+        return JsonResponse({'message': 'User deleted successfully'}, status=200)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500) 
+
+# Firebase Admin SDKが正しく機能しているかをテストする関数：不要になった場合、将来的に削除しても良い
+def test_firebase(request):
+    try:
+        # テスト用に特定のユーザーのUIDを使います（ Firebaseに登録されてる'ami@example.com'を使用）
+        user = auth.get_user_by_email('ami@example.com') 
+        return JsonResponse({
+            'uid': user.uid,
+            'email': user.email,
+            'display_name': user.display_name
+        })
+    except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)

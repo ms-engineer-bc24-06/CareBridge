@@ -60,8 +60,21 @@ def update_staff(request, uuid):
 @api_view(['DELETE'])
 def delete_staff(request, uuid):
     try:
-        staff = Staff.objects.get(uuid=UUID(uuid))
+        print(f"Attempting to delete staff with UUID: {uuid}")
+        # UUIDが文字列で渡されている場合のみUUIDオブジェクトに変換
+        if isinstance(uuid, str):
+            uuid = UUID(uuid)
+        
+        staff = Staff.objects.get(uuid=uuid)
         staff.delete()
+        print(f"Staff with UUID {uuid} deleted successfully")
         return Response(status=status.HTTP_204_NO_CONTENT)
+    except ValueError:
+        print(f"Invalid UUID format: {uuid}")
+        return Response({"message": "無効なUUID形式です"}, status=status.HTTP_400_BAD_REQUEST)
     except Staff.DoesNotExist:
+        print(f"Staff with UUID {uuid} not found")
         return Response({"message": "職員が見つかりません"}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        print(f"Error deleting staff with UUID {uuid}: {str(e)}")
+        return Response({"message": f"削除中にエラーが発生しました: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
