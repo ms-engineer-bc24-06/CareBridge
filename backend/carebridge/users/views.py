@@ -49,6 +49,14 @@ def get_user(request, uuid):
     except User.DoesNotExist:
         return Response({"ユーザーが見つかりません"}, status=404)
 
+@api_view(['GET'])
+def get_user_uuid_by_firebase_uid(request, firebase_uid):
+    try:
+        user = User.objects.get(firebase_uid=firebase_uid)
+        return Response({"uuid": str(user.uuid)})
+    except User.DoesNotExist:
+        return Response({"error": "ユーザーが見つかりません"}, status=404)
+
 @api_view(['POST'])
 def create_user(request):
     data = request.data.copy()
@@ -63,14 +71,6 @@ def create_user(request):
     else:
         print("Serializer errors:", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-@api_view(['GET'])
-def get_user_uuid_by_firebase_uid(request, firebase_uid):
-    try:
-        user = User.objects.get(firebase_uid=firebase_uid)
-        return Response({"uuid": str(user.uuid)})
-    except User.DoesNotExist:
-        return Response({"error": "ユーザーが見つかりません"}, status=404)
 
 @api_view(['PUT'])
 def update_user(request, uuid):
@@ -101,7 +101,7 @@ def delete_user(request, uuid):
         return Response({"message": "無効なUUID形式です"}, status=status.HTTP_400_BAD_REQUEST)
     except User.DoesNotExist:
         print(f"User with UUID {uuid} not found")
-        return Response({"message": "スタッフが見つかりません"}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"message": "ユーザーが見つかりません"}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         print(f"Error deleting user with UUID {uuid}: {str(e)}")
         return Response({"message": f"削除中にエラーが発生しました: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
