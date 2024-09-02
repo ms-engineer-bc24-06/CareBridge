@@ -30,7 +30,7 @@ class Facility(models.Model):
 class Payment(models.Model):
     id = models.AutoField(primary_key=True)
     facility = models.ForeignKey(Facility, on_delete=models.CASCADE)
-    stripe_payment_method_id = models.CharField(max_length=255, unique=True, null=False)
+    stripe_payment_method_id = models.CharField(max_length=255, unique=True, null=True)
     stripe_subscription_id = models.CharField(max_length=255, null=True)
     trial_end_date = models.DateField(null=True, blank=True)  # 無料試用期間の終了日
     created_at = models.DateTimeField(default=timezone.now)
