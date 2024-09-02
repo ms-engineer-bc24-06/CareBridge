@@ -174,24 +174,24 @@ const PrescriptionPage = () => {
         <tbody>
           {prescriptions.map((prescription) => (
             <tr key={prescription.id}>
-              <td className="py-2 px-3 border-b">{prescription.date}</td>
-              <td className="py-2 px-3 border-b truncate max-w-xs">
+              <td className="py-2 px-3 border-b text-center">{prescription.date}</td>
+              <td className="py-2 px-3 border-b text-center truncate max-w-xs">
                 {prescription.medication_name}
               </td>
-              <td className="py-2 px-3 border-b">
+              <td className="py-2 px-3 border-b text-center">
                 {prescription.dosage_and_usage}
               </td>
-              <td className="py-2 px-3 border-b">
+              <td className="py-2 px-3 border-b text-center">
                 {prescription.pharmacy_name}
               </td>
-              <td className="py-2 px-3 border-b">
+              <td className="py-2 px-3 border-b text-center">
                 {prescription.pharmacy_phone_number}
               </td>
               {/* スタッフUUIDを元に対応するスタッフIDと名前を表示 */}
-              <td className="py-2 px-3 border-b">
+              <td className="py-2 px-3 border-b text-center">
                 {staffDetails[prescription.staff]?.staff_name || "不明"}
               </td>
-              <td className="py-2 px-3 border-b">
+              <td className="py-2 px-3 border-b text-center">
                 <button
                   onClick={() => openModal(prescription)}
                   className="bg-accent2 text-white px-4 py-2 rounded"

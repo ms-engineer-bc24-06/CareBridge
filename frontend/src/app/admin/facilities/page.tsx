@@ -111,7 +111,7 @@ const FacilitiesManagement: React.FC = () => {
             <strong>担当者:</strong> {facility.contact_person}
           </div>
           <div className="flex justify-end w-full mt-8">
-            <button onClick={() => setIsEditing(true)} className="bg-yellow-500 text-white px-6 py-3 text-lg rounded">編集</button>
+            <button onClick={() => setIsEditing(true)} className="bg-accent2 text-white px-6 py-3 text-lg rounded">編集</button>
           </div>
         </div>
       )}
@@ -173,12 +173,12 @@ const FacilitiesManagement: React.FC = () => {
             <div className="flex justify-end mt-4">
               <button
                 onClick={handleUpdateFacility}
-                className={`bg-blue-500 text-white px-6 py-3 rounded text-lg ${Object.keys(errors).length === 0 ? '' : 'opacity-50 cursor-not-allowed'}`}
+                className={`bg-accent2 text-white px-6 py-3 rounded text-lg ${Object.keys(errors).length === 0 ? '' : 'opacity-50 cursor-not-allowed'}`}
                 disabled={Object.keys(errors).length > 0}
               >
                 保存
               </button>
-              <button onClick={() => setIsEditing(false)} className="bg-gray-500 text-white px-6 py-3 rounded text-lg ml-4">キャンセル</button>
+              <button onClick={() => setIsEditing(false)} className="bg-accent text-white px-6 py-3 rounded text-lg ml-4">キャンセル</button>
             </div>
           </div>
         </div>

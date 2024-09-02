@@ -78,21 +78,15 @@ const UserTop = () => {
             <thead>
               <tr>
                 <th
-                  className="text-sm md:text-base py-2 px-3 border-b"
-                  style={{ whiteSpace: "nowrap" }} // テキストが縦書きにならないように
-                >
+                  className="text-sm md:text-base py-2 px-3 border-b text-center">
                   日付
                 </th>
                 <th
-                  className="text-sm md:text-base py-2 px-3 border-b"
-                  style={{ whiteSpace: "nowrap" }} // テキストが縦書きにならないように
-                >
+                  className="text-sm md:text-base py-2 px-3 border-b text-sm text-center">
                   連絡内容
                 </th>
                 <th
-                  className="text-sm md:text-base py-2 px-3 border-b"
-                  style={{ whiteSpace: "nowrap" }} // テキストが縦書きにならないように
-                >
+                  className="text-sm md:text-base py-2 px-3 border-b text-sm text-center">
                   確認
                 </th>
               </tr>
@@ -100,20 +94,19 @@ const UserTop = () => {
             <tbody>
               {contactNotes.map((note) => (
                 <tr key={note.id}>
-                  <td className="py-2 px-3 border-b md:text-base text-sm">
+                  <td className="py-2 px-3 border-b md:text-base text-sm text-sm text-center">
                     {formatDate(note.date)} {/* 日付をMM/DD形式で表示 */}
                   </td>
-                  <td className="py-2 px-3 border-b md:text-base text-sm">
+                  <td className="py-2 px-3 border-b md:text-base text-sm text-sm">
                     <Link href={`/user/contact-notes/${note.id}`}>
                       <div className="line-clamp-2 text-blue-600 hover:underline">
                         {note.detail} {/* 連絡事項の詳細を表示 */}
                       </div>
                     </Link>
                   </td>
-                  <td className="py-2 px-3 border-b md:text-base text-sm">
-                    {note.is_confirmed ? "済" : "未"}{" "}
-                    {/* 確認済みかどうかを表示 */}
-                  </td>
+                  <td className="py-2 px-3 border-b md:text-base text-sm text-center">
+                      {note.is_confirmed ? "済" : "未"}
+                  </td> 
                 </tr>
               ))}
             </tbody>

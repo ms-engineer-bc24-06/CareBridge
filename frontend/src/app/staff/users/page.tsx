@@ -104,40 +104,40 @@ const Users: React.FC = () => {
         <tbody>
           {filteredUsers.map((user) => (
             <tr key={user.uuid}>
-              <td className="py-2 px-3 border-b">{user.user_id}</td>
-              <td className="py-2 px-3 border-b text-blue-800 underline">
+              <td className="py-2 px-3 border-b text-center">{user.user_id}</td>
+              <td className="py-2 px-3 border-b text-center text-blue-800 underline">
                 <Link href={`/staff/users/${user.uuid}`}>{user.user_name}</Link>
               </td>
-              <td className="py-2 px-3 border-b">{user.user_sex}</td>
-              <td className="py-2 px-3 border-b">{user.user_birthday}</td>
-              <td className="py-2 px-3 border-b">
+              <td className="py-2 px-3 border-b text-center">{user.user_sex}</td>
+              <td className="py-2 px-3 border-b text-center">{user.user_birthday}</td>
+              <td className="py-2 px-3 border-b text-center">
                 {user.emergency_contact_name}
               </td>
-              <td className="py-2 px-3 border-b">
+              <td className="py-2 px-3 border-b text-center">
                 {user.emergency_contact_phone}
               </td>
-              <td className="py-2 px-3 border-b flex space-x-2">
+              <td className="py-2 px-3 border-b flex justify-center space-x-2">
                 {/* ケア記録ボタン */}
                 <Link href={`/staff/care-records/${user.uuid}`}>
-                  <button className="bg-accent2 text-white px-4 py-2 rounded">
+                  <button className="bg-accent2 text-white px-4 py-2 rounded ">
                     ケア記録
                   </button>
                 </Link>
                 {/* ダッシュボードボタン */}
                 <Link href={`/staff/dashboard?user=${user.uuid}`}>
-                  <button className="bg-accent2 text-white px-4 py-2 rounded">
+                  <button className="bg-accent2 text-white px-4 py-2 rounded ">
                     ボード
                   </button>
                 </Link>
                 {/* 連絡ノートボタン */}
                 <Link href={`/staff/contact-notes/${user.uuid}`}>
-                  <button className="bg-accent2 text-white px-4 py-2 rounded">
+                  <button className="bg-accent2 text-white px-4 py-2 rounded ">
                     連絡ノート
                   </button>
                 </Link>
                 {/* お薬ノートボタンを追加 */}
                 <Link href={`/staff/prescription/${user.uuid}`}>
-                  <button className="bg-accent2 text-white px-4 py-2 rounded">
+                  <button className="bg-accent2 text-white px-4 py-2 rounded ">
                     お薬ノート
                   </button>
                 </Link>

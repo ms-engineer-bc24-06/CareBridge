@@ -89,30 +89,30 @@ const ContactNotesPage = () => {
         <table className="min-w-full">
           <thead>
             <tr>
-              <th className="text-sm md:text-base py-2 px-3 border-b">日付</th>
-              <th className="text-sm md:text-base py-2 px-3 border-b">
-                連絡内容
-              </th>
-              <th className="text-sm md:text-base py-2 px-3 border-b">確認</th>
+              <th className="text-sm md:text-base py-2 px-3 border-b text-center">日付</th>
+              <th className="text-sm md:text-base py-2 px-3 border-b text-center">連絡内容</th>
+              <th className="text-sm md:text-base py-2 px-3 border-b text-center">確認</th>
             </tr>
           </thead>
           <tbody>
             {currentItems.map((note) => (
               <tr key={note.id}>
-                <td className="py-2 px-3 border-b md:text-base text-sm">
+                <td className="py-2 px-3 border-b md:text-base text-sm text-center">
                   {formatDate(note.date)} {/* 日付をMM/DD形式で表示 */}
                 </td>
-                <td className="py-2 px-3 border-b md:text-base text-sm">
+                <td className="py-2 px-3 border-b md:text-base text-sm text-center">
                   <Link href={`/user/contact-notes/${note.id}`}>
                     <div className="text-blue-600 line-clamp-2">
                       {note.detail}
                     </div>
                   </Link>
                 </td>
-                <td className="py-2 px-3 border-b md:text-base text-sm">
-                  {note.is_confirmed ? "済" : "未"}{" "}
-                  {/* 確認済みかどうかを表示 */}
-                </td>
+                <td className="py-2 px-3 border-b md:text-base text-sm text-center">
+                    <span className={note.is_confirmed ? "" : "text-accent"}>
+                      {/* 確認済みかどうかを表示 */}
+                      {note.is_confirmed ? "済" : "未"}
+                    </span>
+                  </td> 
               </tr>
             ))}
           </tbody>
