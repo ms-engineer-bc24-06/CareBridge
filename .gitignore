@@ -48,3 +48,5 @@ serviceAccountKey.json
 
 # サービスアカウントのJSONファイル
 /backend/carebridge/credentials/*.json
+
+/backend/carebridge/.coverage
