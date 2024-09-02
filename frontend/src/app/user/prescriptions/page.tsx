@@ -96,10 +96,10 @@ const PrescriptionPage = () => {
           <tbody>
             {currentItems.map((prescription) => (
               <tr key={prescription.id}>
-                <td className="py-2 px-3 border-b md:text-base text-sm">
+                <td className="py-2 px-3 border-b md:text-base text-sm text-center">
                   {formatDate(prescription.date)} {/* 日付をMM/DD形式で表示 */}
                 </td>
-                <td className="py-2 px-3 border-b md:text-base text-sm">
+                <td className="py-2 px-3 border-b md:text-base text-sm text-center">
                   <Link href={`/user/prescriptions/${prescription.id}`}>
                     <div className="text-blue-600 line-clamp-2">
                       {prescription.medication_name}

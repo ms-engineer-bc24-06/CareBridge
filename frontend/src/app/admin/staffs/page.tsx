@@ -297,23 +297,23 @@ const handleEditStaffClick = (staff: Staff) => {
           />
           <button onClick={() => setSearchTerm('')} className="bg-secondary text-white px-4 py-2 rounded">クリア</button>
         </div>
-        <button onClick={() => { setShowAddForm(true); setErrors({}); }} className="bg-green-500 text-white px-4 py-2 rounded">+ 追加</button>
+        <button onClick={() => { setShowAddForm(true); setErrors({}); }} className="bg-secondary text-white px-4 py-2 rounded">+ 新規職員追加</button>
       </div>
       <table className="min-w-full bg-white shadow rounded-lg">
         <thead>
           <tr>
-            <th className="py-2 px-4 border-b">職員ID</th>
-            <th className="py-2 px-4 border-b">職員名</th>
-            <th className="py-2 px-4 border-b">管理者権限</th>
-            <th className="py-2 px-4 border-b">アクション</th>
+            <th className="py-2 px-4 border-b text-center">職員ID</th>
+            <th className="py-2 px-4 border-b text-center">職員名</th>
+            <th className="py-2 px-4 border-b text-center">管理者権限</th>
+            <th className="py-2 px-4 border-b text-center">アクション</th>
           </tr>
         </thead>
         <tbody>
           {filteredStaffs.map(staff => (
             <tr key={staff.staff_id}>
-              <td className="py-2 px-4 border-b">{staff.staff_id}</td>
-              <td className="py-2 px-4 border-b">{staff.staff_name}</td>
-              <td className="py-2 px-4 border-b">
+              <td className="py-2 px-4 border-b text-center">{staff.staff_id}</td>
+              <td className="py-2 px-4 border-b text-center">{staff.staff_name}</td>
+              <td className="py-2 px-4 border-b text-center">
                 <input
                   type="checkbox"
                   checked={staff.is_admin}  
@@ -321,14 +321,14 @@ const handleEditStaffClick = (staff: Staff) => {
                   className="h-4 w-4"
                 />
               </td>
-              <td className="py-2 px-4 border-b flex space-x-2">
-              <button onClick={() => handleEditStaffClick(staff)} className="bg-yellow-500 text-white px-4 py-2 rounded">編集</button>
+              <td className="py-2 px-4 border-b flex justify-center space-x-2">
+              <button onClick={() => handleEditStaffClick(staff)} className="bg-accent2 text-white px-4 py-2 rounded">編集</button>
                 <button 
                   onClick={() => {
                     console.log("Delete button clicked for staff: ", staff.staff_id); // デバッグ用
                     handleDeleteStaff(staff.uuid);
                   }} 
-                  className="bg-red-500 text-white px-4 py-2 rounded"
+                  className="bg-accent text-white px-4 py-2 rounded"
                 >
                   削除
                 </button>
@@ -372,8 +372,8 @@ const handleEditStaffClick = (staff: Staff) => {
               />
             </label>
             <div className="flex justify-end space-x-2 mt-4">
-              <button onClick={handleUpdateStaff} className="bg-blue-500 text-white px-4 py-2 rounded">更新</button>
-              <button onClick={() => setEditStaff(null)} className="bg-gray-500 text-white px-4 py-2 rounded">キャンセル</button>
+              <button onClick={handleUpdateStaff} className="bg-accent2 text-white px-4 py-2 rounded">更新</button>
+              <button onClick={() => setEditStaff(null)} className="bg-accent text-white px-4 py-2 rounded">キャンセル</button>
             </div>
           </div>
         </div>
@@ -382,7 +382,7 @@ const handleEditStaffClick = (staff: Staff) => {
       {showAddForm && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-4xl">
-            <h2 className="text-2xl mb-4">新規職員追加</h2>
+            <h2 className="text-2xl mb-4">追加</h2>
             <label className="block mb-2">
               名前{renderRequiredLabel()}:
               <input
@@ -465,8 +465,8 @@ const handleEditStaffClick = (staff: Staff) => {
                 />
             </label>
             <div className="flex justify-end space-x-2 mt-4">
-              <button onClick={handleAddStaff} className="bg-green-500 text-white px-4 py-2 rounded">追加</button>
-              <button onClick={() => setShowAddForm(false)} className="bg-gray-500 text-white px-4 py-2 rounded">キャンセル</button>
+              <button onClick={handleAddStaff} className="bg-accent2 text-white px-4 py-2 rounded">追加</button>
+              <button onClick={() => setShowAddForm(false)} className="bg-accent text-white px-4 py-2 rounded">キャンセル</button>
             </div>
           </div>
         </div>

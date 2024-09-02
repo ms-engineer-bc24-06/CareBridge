@@ -168,21 +168,21 @@ const ContactNotesPage = () => {
         <tbody>
           {contactNotes.map((note) => (
             <tr key={note.id}>
-              <td className="py-2 px-3 border-b">{note.date}</td>
-              <td className="py-2 px-3 border-b truncate max-w-xs">
+              <td className="py-2 px-3 border-b text-center">{note.date}</td>
+              <td className="py-2 px-3 border-b  truncate max-w-xs">
                 {note.detail}
               </td>
               {/* スタッフUUIDを元に対応するスタッフIDと名前を表示 */}
-              <td className="py-2 px-3 border-b">
+              <td className="py-2 px-3 border-b text-center">
                 {staffDetails[note.staff]?.staff_id || "不明"}
               </td>
-              <td className="py-2 px-3 border-b">
+              <td className="py-2 px-3 border-b text-center">
                 {staffDetails[note.staff]?.staff_name || "不明"}
               </td>
-              <td className="py-2 px-3 border-b">
+              <td className="py-2 px-3 border-b text-center">
                 {note.is_confirmed ? "確認済み" : "未確認"}
               </td>
-              <td className="py-2 px-3 border-b">
+              <td className="py-2 px-3 border-b text-center">
                 <button
                   onClick={() => openModal(note)}
                   className="bg-accent2 text-white px-4 py-2 rounded"

@@ -252,20 +252,20 @@ const CareRecordsPage = () => {
         <tbody>
           {filteredCareRecords.map((record) => (
             <tr key={record.id}>
-              <td className="py-2 px-3 border-b">{record.date}</td>
-              <td className="py-2 px-3 border-b">{record.meal}</td>
-              <td className="py-2 px-3 border-b">{record.excretion}</td>
-              <td className="py-2 px-3 border-b">{record.bath}</td>
-              <td className="py-2 px-3 border-b">{record.temperature}</td>
-              <td className="py-2 px-3 border-b">{record.diastolic_bp}</td>
-              <td className="py-2 px-3 border-b">{record.systolic_bp}</td>
-              <td className="py-2 px-3 border-b">{record.comments}</td>
+              <td className="py-2 px-3 border-b text-center">{record.date}</td>
+              <td className="py-2 px-3 border-b text-center">{record.meal}</td>
+              <td className="py-2 px-3 border-b text-center">{record.excretion}</td>
+              <td className="py-2 px-3 border-b text-center">{record.bath}</td>
+              <td className="py-2 px-3 border-b text-center">{record.temperature}</td>
+              <td className="py-2 px-3 border-b text-center">{record.diastolic_bp}</td>
+              <td className="py-2 px-3 border-b text-center">{record.systolic_bp}</td>
+              <td className="py-2 px-3 border-b ">{record.comments}</td>
               {/* スタッフの名前を表示 */}
-              <td className="py-2 px-3 border-b">
+              <td className="py-2 px-3 border-b text-center">
                 {staffDetails[record.staff]?.staff_name || "不明"}
               </td>
               {/* 編集と削除のボタン */}
-              <td className="py-2 px-3 border-b">
+              <td className="py-2 px-3 border-b text-center">
                 <button
                   onClick={() => openModal(record)}
                   className="bg-accent2 text-white px-3 py-1 rounded mr-2"

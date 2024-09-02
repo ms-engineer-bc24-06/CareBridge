@@ -307,30 +307,30 @@ const UsersManagement: React.FC = () => {
           });
           setShowAddForm(true); 
           setErrors({}); 
-        }} className="bg-green-500 text-white px-4 py-2 rounded">+ 追加</button>
+        }} className="bg-secondary text-white px-4 py-2 rounded">+ 利用者追加</button>
       </div>
       <table className="min-w-full bg-white shadow rounded-lg">
         <thead>
           <tr>
-            <th className="py-2 px-4 border-b">利用者ID</th>
-            <th className="py-2 px-4 border-b">利用者名</th>
-            <th className="py-2 px-4 border-b">ふりがな</th>
-            <th className="py-2 px-4 border-b">アクション</th>
+            <th className="py-2 px-4 border-b text-center">利用者ID</th>
+            <th className="py-2 px-4 border-b text-center">利用者名</th>
+            <th className="py-2 px-4 border-b text-center">ふりがな</th>
+            <th className="py-2 px-4 border-b text-center">アクション</th>
           </tr>
         </thead>
         <tbody>
           {filteredUsers.map(user => (
             <tr key={user.uuid}>
-              <td className="py-2 px-4 border-b">{user.user_id}</td>
-              <td className="py-2 px-4 border-b">
+              <td className="py-2 px-4 border-b text-center">{user.user_id}</td>
+              <td className="py-2 px-4 border-b text-center">
                 <Link href={`/admin/users/${user.uuid}`} className="text-blue-800 underline">
                   {user.user_name}
                 </Link>
               </td>
-              <td className="py-2 px-4 border-b">{user.user_name_kana}</td>
-              <td className="py-2 px-4 border-b flex space-x-2">
-                <button onClick={() => handleEditUser(user.uuid)} className="bg-yellow-500 text-white px-4 py-2 rounded">編集</button>
-                <button onClick={() => handleDeleteUser(user.uuid)} className="bg-red-500 text-white px-4 py-2 rounded">削除</button>
+              <td className="py-2 px-4 border-b text-center">{user.user_name_kana}</td>
+              <td className="py-2 px-4 border-b flex justify-center space-x-2">
+                <button onClick={() => handleEditUser(user.uuid)} className="bg-accent2 text-white px-4 py-2 rounded">編集</button>
+                <button onClick={() => handleDeleteUser(user.uuid)} className="bg-accent text-white px-4 py-2 rounded">削除</button>
               </td>
             </tr>
           ))}
@@ -633,12 +633,12 @@ const UsersManagement: React.FC = () => {
             <div className="flex justify-end space-x-2 mt-4">
               <button 
                 onClick={handleAddUser}
-                className={`bg-green-500 text-white px-4 py-2 rounded ${Object.keys(errors).length > 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`bg-accent2 text-white px-4 py-2 rounded ${Object.keys(errors).length > 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                 disabled={Object.keys(errors).length > 0}
               >
                 追加
               </button>
-              <button onClick={() => setShowAddForm(false)} className="bg-gray-500 text-white px-4 py-2 rounded">キャンセル</button>
+              <button onClick={() => setShowAddForm(false)} className="bg-accent text-white px-4 py-2 rounded">キャンセル</button>
             </div>
           </div>
         </div>
