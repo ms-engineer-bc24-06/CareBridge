@@ -30,12 +30,12 @@ class Facility(models.Model):
 class Payment(models.Model):
     id = models.AutoField(primary_key=True)
     facility = models.ForeignKey(Facility, on_delete=models.CASCADE)
-    stripe_payment_method_id = models.CharField(max_length=255, unique=True, null=True)
-    stripe_subscription_id = models.CharField(max_length=255, null=True)
+    stripe_payment_method_id = models.CharField(max_length=255, unique=True, null=True, blank=True)
+    stripe_subscription_id = models.CharField(max_length=255, null=True, blank=True)
     trial_end_date = models.DateField(null=True, blank=True)  # 無料試用期間の終了日
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
-    status = models.CharField(max_length=50, null=False)  # テキスト入力用に変更
+    status = models.CharField(max_length=50, null=True, blank=True)  # テキスト入力用に変更
 
     def __str__(self):
         return f"{self.facility.facility_name} - Payment"
@@ -45,12 +45,13 @@ class Transaction(models.Model):
     facility = models.ForeignKey(Facility, on_delete=models.CASCADE, null=False)
     payment = models.ForeignKey(Payment, on_delete=models.CASCADE, null=False)
     amount = models.DecimalField(max_digits=10, decimal_places=2, null=False)
-    status = models.CharField(max_length=50, null=False)  # テキスト入力用に変更
-    stripe_transaction_id = models.CharField(max_length=255, unique=True, null=False)
+    status = models.CharField(max_length=50, null=True, blank=True)  # テキスト入力用に変更
+    stripe_transaction_id = models.CharField(max_length=255, unique=True, null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return f"{self.facility.facility_name} - {self.status} - {self.created_at}"
+    
 class User(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     firebase_uid = models.CharField(max_length=128, unique=True, blank=True)
