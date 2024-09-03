@@ -48,14 +48,28 @@ def create_staff(request):
 @api_view(['PUT'])
 def update_staff(request, uuid):
     try:
-        staff = Staff.objects.get(uuid=UUID(uuid))
+        # UUIDを文字列として扱う
+        print(f"Received request to update staff with UUID: {uuid}")  # デバッグ用のログ
+        staff = Staff.objects.get(uuid=uuid)  # UUIDの取得部分でUUIDオブジェクトではなくそのまま文字列を使用
+        print(f"Found staff: {staff}")  # UUIDでスタッフが見つかった場合
+
+        # リクエストデータの内容を確認
+        print("Request data:", request.data)
+
+        # データをシリアライザーに渡す
         serializer = StaffSerializer(staff, data=request.data)
         if serializer.is_valid():
             serializer.save()
+            print("Staff updated successfully:", serializer.data)  # 更新成功時のログ
             return Response(serializer.data)
+        print("Validation errors:", serializer.errors)  # バリデーションエラーのログ
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     except Staff.DoesNotExist:
+        print(f"Staff with UUID {uuid} not found")  # スタッフが見つからない場合のログ
         return Response({"message": "職員が見つかりません"}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        print(f"Error updating staff with UUID {uuid}: {str(e)}")  # その他のエラーのログ
+        return Response({"message": f"更新中にエラーが発生しました: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['DELETE'])
 def delete_staff(request, uuid):

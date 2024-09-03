@@ -173,14 +173,14 @@ const StaffsManagement: React.FC = () => {
 };
 
 // 職員を編集する処理
-const handleEditStaffClick = (staff: Staff) => {
-  console.log("Staff object:", staff);
-  if (!staff.uuid) {
-    console.error("The staff object does not contain a uuid.");
-    return;
-  }
-  setEditStaff(staff); // 選択された職員を編集用に設定
-};
+  const handleEditStaffClick = (staff: Staff) => {
+    console.log("Staff object:", staff);
+    if (!staff.uuid) {
+      console.error("The staff object does not contain a uuid.");
+      return;
+    }
+    setEditStaff(staff); // 選択された職員を編集用に設定
+  };
 
   const handleEditStaff = (id: number) => {
     const staffToEdit = staffs.find(staff => staff.uuid === editStaff!.uuid);
@@ -191,20 +191,39 @@ const handleEditStaffClick = (staff: Staff) => {
 
   // 職員情報を更新する処理
   const handleUpdateStaff = async () => {
-    const validationErrors = validateForm(editStaff!);
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
+    if (!editStaff || !editStaff.uuid) {
+        console.error("Invalid staff data: UUID is missing.");
+        setErrors({ uuid: "UUIDが存在しません。" });
+        return;
     }
 
     try {
-      const response = await axios.put(`http://localhost:8000/api/staffs/${editStaff!.uuid}/`, editStaff!);
-      setStaffs(staffs.map(staff => (staff.uuid === editStaff!.uuid ? response.data : staff)));  
-      setFilteredStaffs(staffs.map(staff => (staff.uuid === editStaff!.uuid ? response.data : staff))); 
-      setEditStaff(null);  
-      setErrors({});
+        console.log("Sending update request for staff:", editStaff);
+        const csrfToken = getCsrfToken();
+        const response = await axios.put(`http://localhost:8000/api/staffs/${editStaff.uuid}/update/`, {
+            staff_name: editStaff.staff_name,
+            staff_name_kana: editStaff.staff_name_kana,
+            is_admin: editStaff.is_admin,
+            facility: editStaff.facility
+        }, {
+            headers: {
+                'X-CSRFToken': csrfToken || ''
+            }
+        });
+
+        if (response.status === 200) {
+            console.log("Update successful:", response.data);
+            setStaffs(staffs.map(staff => (staff.uuid === editStaff.uuid ? response.data : staff)));
+            setFilteredStaffs(filteredStaffs.map(staff => (staff.uuid === editStaff.uuid ? response.data : staff)));
+            setEditStaff(null);
+            setErrors({});
+        } else {
+            console.error("Failed to update staff, status code:", response.status);
+            setErrors({ api: "更新に失敗しました。サーバーのエラーを確認してください。" });
+        }
     } catch (error) {
-      console.error("職員の更新中にエラーが発生しました", error);
+        console.error("職員の更新中にエラーが発生しました", error);
+        setErrors({ api: "サーバーとの通信でエラーが発生しました。" });
     }
   };
 
@@ -269,11 +288,16 @@ const handleEditStaffClick = (staff: Staff) => {
     if (!staff.staff_name) newErrors.staff_name = '入力必須項目です';
     if (!staff.staff_name_kana) newErrors.staff_name_kana = '入力必須項目です';
     if (!staff.user_id) newErrors.user_id = '入力必須項目です';
-    if (!staff.password && !editStaff) newErrors.password = '入力必須項目です';
-    if (staff.password.length < 6) newErrors.password = 'パスワードは6文字以上である必要があります';
-    if (staff.password !== confirmPassword) newErrors.confirmPassword = 'パスワードが一致しません';
+    
+    // 新規作成時またはパスワードが必要な時のみパスワードのバリデーションを行う
+    if (!editStaff) {
+        if (!staff.password) newErrors.password = '入力必須項目です';
+        if (staff.password.length < 6) newErrors.password = 'パスワードは6文字以上である必要があります';
+        if (staff.password !== confirmPassword) newErrors.confirmPassword = 'パスワードが一致しません';
+    }
+    
     return newErrors;
-  };
+    };
 
   // エラーメッセージを表示する処理
   const renderErrorMessage = (fieldName: string) => {
