@@ -223,17 +223,27 @@ const CareRecordsListPage: React.FC = () => {
           {/* 日付順にソートされたケア記録を表示 */}
           {getSortedCareRecords().map(({ user, record }) => (
             <tr key={`${user.uuid}-${record.date}`}>
-              <td className="py-2 px-3 border-b">{record.date}</td>
-              <td className="py-2 px-3 border-b">{user.user_id}</td>
-              <td className="py-2 px-3 border-b">{user.user_name}</td>
-              <td className="py-2 px-3 border-b">{record.meal}</td>
-              <td className="py-2 px-3 border-b">{record.excretion}</td>
-              <td className="py-2 px-3 border-b">{record.bath}</td>
-              <td className="py-2 px-3 border-b">{record.temperature}</td>
-              <td className="py-2 px-3 border-b">{record.systolic_bp}</td>
-              <td className="py-2 px-3 border-b">{record.diastolic_bp}</td>
+              <td className="py-2 px-3 border-b text-center">{record.date}</td>
+              <td className="py-2 px-3 border-b text-center">{user.user_id}</td>
+              <td className="py-2 px-3 border-b text-center">
+                {user.user_name}
+              </td>
+              <td className="py-2 px-3 border-b text-center">{record.meal}</td>
+              <td className="py-2 px-3 border-b text-center">
+                {record.excretion}
+              </td>
+              <td className="py-2 px-3 border-b text-center">{record.bath}</td>
+              <td className="py-2 px-3 border-b text-center">
+                {record.temperature}
+              </td>
+              <td className="py-2 px-3 border-b text-center">
+                {record.systolic_bp}
+              </td>
+              <td className="py-2 px-3 border-b text-center">
+                {record.diastolic_bp}
+              </td>
               {/* スタッフUUIDを元に対応するスタッフ名を表示 */}
-              <td className="py-2 px-3 border-b">
+              <td className="py-2 px-3 border-b text-center">
                 {staffDetails[record.staff]?.staff_name || "不明"}
               </td>
             </tr>
