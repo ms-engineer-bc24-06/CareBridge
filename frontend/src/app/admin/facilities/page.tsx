@@ -58,7 +58,7 @@ const FacilitiesManagement: React.FC = () => {
   const handleUpdateFacility = async () => {
     if (facility && validateForm(facility)) {
       try {
-        const response = await axios.put(`http://localhost:8000/api/facilities/${facility.id}/`, facility);
+        const response = await axios.put(`http://localhost:8000/api/facilities/${facility.id}/update/`, facility);
         setFacility(response.data);  // 更新された施設情報をstateに保存
         setIsEditing(false);  // 編集モードを終了
         setErrors({});  // エラーメッセージをクリア
