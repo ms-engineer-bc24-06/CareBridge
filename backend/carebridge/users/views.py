@@ -75,14 +75,27 @@ def create_user(request):
 @api_view(['PUT'])
 def update_user(request, uuid):
     try:
-        user = User.objects.get(uuid=uuid)  # ここでUUIDの再変換は不要
+        print(f"Received update request for user with UUID: {uuid}")  # デバッグ用のログ
+        user = User.objects.get(uuid=uuid)
+        print(f"Found user: {user}")  # UUIDでユーザーが見つかった場合
+
+        # リクエストデータの内容を確認
+        print("Request data:", request.data)
+
+        # シリアライザーにデータを渡してバリデーションと保存を行う
         serializer = UserSerializer(user, data=request.data)
         if serializer.is_valid():
             serializer.save()
+            print("User updated successfully:", serializer.data)  # 更新成功時のログ
             return Response(serializer.data)
+        print("Validation errors:", serializer.errors)  # バリデーションエラーのログ
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     except User.DoesNotExist:
-        return Response({"ユーザーが見つかりません"}, status=404)
+        print(f"User with UUID {uuid} not found")  # ユーザーが見つからない場合のログ
+        return Response({"message": "ユーザーが見つかりません"}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        print(f"Error updating user with UUID {uuid}: {str(e)}")  # その他のエラーのログ
+        return Response({"message": f"更新中にエラーが発生しました: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['DELETE'])
 def delete_user(request, uuid):
