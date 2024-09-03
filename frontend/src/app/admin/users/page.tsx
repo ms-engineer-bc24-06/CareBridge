@@ -173,32 +173,70 @@ const UsersManagement: React.FC = () => {
     return newErrors;
   };
 
+  // ユーザーの編集
   const handleEditUser = (userId: string) => {
-    const userToEdit = users.find(user => user.user_id === userId);
+    const userToEdit = users.find(user => user.uuid === userId);
     if (userToEdit) {
-      setEditUser(userToEdit);  
+        setEditUser(userToEdit);  // 選択したユーザーを編集用のステートに設定
+        console.log("Editing user:", userToEdit);  // デバッグ用
+    } else {
+        console.error("User not found:", userId);
     }
   };
 
+  // ユーザーの更新
   const handleUpdateUser = async () => {
-    if (editUser) {
-      const validationErrors = validateForm(editUser);
-      if (Object.keys(validationErrors).length > 0) {
+    if (!editUser) {
+        console.error("No user selected for editing.");
+        return;
+    }
+
+    // フォームのバリデーション
+    const validationErrors = validateForm(editUser);
+    if (Object.keys(validationErrors).length > 0) {
         setErrors(validationErrors);
         return;
-      }
+    }
 
-      try {
-        const response = await axios.put(`http://localhost:8000/api/users/${editUser.uuid}/update/`, editUser);
-        setUsers(users.map(user => (user.uuid === editUser.uuid ? response.data : user)));  
-        setFilteredUsers(users.map(user => (user.uuid === editUser.uuid ? response.data : user))); 
-        setEditUser(null);  
-        setErrors({});
-      } catch (error) {
+    try {
+        // CSRFトークンの取得
+        const csrfToken = getCsrfToken();
+
+        // 更新リクエストを送信
+        const response = await axios.put(`http://localhost:8000/api/users/${editUser.uuid}/update/`, {
+            user_name: editUser.user_name,
+            user_name_kana: editUser.user_name_kana,
+            user_sex: editUser.user_sex,
+            user_birthday: editUser.user_birthday,
+            emergency_contact_name: editUser.emergency_contact_name,
+            emergency_contact_phone: editUser.emergency_contact_phone,
+            emergency_contact_relationship: editUser.emergency_contact_relationship,
+            allergies: editUser.allergies,
+            medications: editUser.medications,
+            medical_history: editUser.medical_history,
+            facility: userFacilityId
+        }, {
+            headers: {
+                'X-CSRFToken': csrfToken || ''
+            }
+        });
+
+        if (response.status === 200) {
+            console.log("Update successful:", response.data);
+            setUsers(users.map(user => (user.uuid === editUser.uuid ? response.data : user)));
+            setFilteredUsers(filteredUsers.map(user => (user.uuid === editUser.uuid ? response.data : user)));
+            setEditUser(null);
+            setErrors({});
+        } else {
+            console.error("Failed to update user, status code:", response.status);
+            setErrors({ api: "更新に失敗しました。サーバーのエラーを確認してください。" });
+        }
+    } catch (error) {
         console.error("ユーザーの更新中にエラーが発生しました", error);
-      }
+        setErrors({ api: "サーバーとの通信でエラーが発生しました。" });
     }
   };
+
 
   // ユーザーの削除
   const handleDeleteUser = async (uuid: string | undefined) => {
@@ -285,29 +323,36 @@ const UsersManagement: React.FC = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="border p-2 rounded mr-2"
           />
-          <button onClick={() => setSearchTerm('')} className="bg-secondary text-white px-4 py-2 rounded">クリア</button>
+          <button onClick={() => setSearchTerm('')} className="bg-secondary text-white px-4 py-2 rounded">
+            クリア
+          </button>
         </div>
-        <button onClick={() => { 
-          setNewUser({
-            uuid: '', 
-            user_id: '',
-            user_name: '',
-            user_name_kana: '',
-            user_sex: '',
-            user_birthday: '',
-            emergency_contact_name: '',
-            emergency_contact_phone: '',
-            emergency_contact_relationship: '',
-            allergies: null,
-            medications: null,
-            medical_history: null,
-            email: '', // 新規登録時のみ
-            password: '', // 新規登録時のみ
-            confirmPassword: '', // 新規登録時のみ
-          });
-          setShowAddForm(true); 
-          setErrors({}); 
-        }} className="bg-secondary text-white px-4 py-2 rounded">+ 利用者追加</button>
+        <button
+          onClick={() => {
+            setNewUser({
+              uuid: '',
+              user_id: '',
+              user_name: '',
+              user_name_kana: '',
+              user_sex: '',
+              user_birthday: '',
+              emergency_contact_name: '',
+              emergency_contact_phone: '',
+              emergency_contact_relationship: '',
+              allergies: null,
+              medications: null,
+              medical_history: null,
+              email: '', // 新規登録時のみ
+              password: '', // 新規登録時のみ
+              confirmPassword: '', // 新規登録時のみ
+            });
+            setShowAddForm(true);
+            setErrors({});
+          }}
+          className="bg-secondary text-white px-4 py-2 rounded"
+        >
+          + 利用者追加
+        </button>
       </div>
       <table className="min-w-full bg-white shadow rounded-lg">
         <thead>
@@ -319,7 +364,7 @@ const UsersManagement: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {filteredUsers.map(user => (
+          {filteredUsers.map((user) => (
             <tr key={user.uuid}>
               <td className="py-2 px-4 border-b text-center">{user.user_id}</td>
               <td className="py-2 px-4 border-b text-center">
@@ -329,14 +374,24 @@ const UsersManagement: React.FC = () => {
               </td>
               <td className="py-2 px-4 border-b text-center">{user.user_name_kana}</td>
               <td className="py-2 px-4 border-b flex justify-center space-x-2">
-                <button onClick={() => handleEditUser(user.uuid)} className="bg-accent2 text-white px-4 py-2 rounded">編集</button>
-                <button onClick={() => handleDeleteUser(user.uuid)} className="bg-accent text-white px-4 py-2 rounded">削除</button>
+                <button
+                  onClick={() => handleEditUser(user.uuid)}
+                  className="bg-accent2 text-white px-4 py-2 rounded"
+                >
+                  編集
+                </button>
+                <button
+                  onClick={() => handleDeleteUser(user.uuid)}
+                  className="bg-accent text-white px-4 py-2 rounded"
+                >
+                  削除
+                </button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
-
+  
       {editUser && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-6xl h-full overflow-auto">
@@ -349,7 +404,7 @@ const UsersManagement: React.FC = () => {
                 onChange={(e) => setEditUser({ ...editUser, user_name: e.target.value })}
                 className="border p-2 rounded w-full"
               />
-              {renderErrorMessage("user_name")}
+              {renderErrorMessage('user_name')}
             </label>
             <label className="block mb-2">
               ふりがな{renderRequiredLabel()}:
@@ -359,7 +414,7 @@ const UsersManagement: React.FC = () => {
                 onChange={(e) => setEditUser({ ...editUser, user_name_kana: e.target.value })}
                 className="border p-2 rounded w-full"
               />
-              {renderErrorMessage("user_name_kana")}
+              {renderErrorMessage('user_name_kana')}
             </label>
             <label className="block mb-2">
               性別{renderRequiredLabel()}:
@@ -385,7 +440,7 @@ const UsersManagement: React.FC = () => {
                   女性
                 </label>
               </div>
-              {renderErrorMessage("user_sex")}
+              {renderErrorMessage('user_sex')}
             </label>
             <label className="block mb-2">
               生年月日{renderRequiredLabel()}:
@@ -395,7 +450,7 @@ const UsersManagement: React.FC = () => {
                 onChange={(e) => setEditUser({ ...editUser, user_birthday: e.target.value })}
                 className="border p-2 rounded w-full"
               />
-              {renderErrorMessage("user_birthday")}
+              {renderErrorMessage('user_birthday')}
             </label>
             <label className="block mb-2">
               緊急連絡者名{renderRequiredLabel()}:
@@ -405,7 +460,7 @@ const UsersManagement: React.FC = () => {
                 onChange={(e) => setEditUser({ ...editUser, emergency_contact_name: e.target.value })}
                 className="border p-2 rounded w-full"
               />
-              {renderErrorMessage("emergency_contact_name")}
+              {renderErrorMessage('emergency_contact_name')}
             </label>
             <label className="block mb-2">
               緊急連絡先電話番号{renderRequiredLabel()}:
@@ -415,17 +470,19 @@ const UsersManagement: React.FC = () => {
                 onChange={(e) => handlePhoneInput(e, editUser, setEditUser)}
                 className="border p-2 rounded w-full"
               />
-              {renderErrorMessage("emergency_contact_phone")}
+              {renderErrorMessage('emergency_contact_phone')}
             </label>
             <label className="block mb-2">
               緊急連絡先との関係{renderRequiredLabel()}:
               <input
                 type="text"
                 value={editUser.emergency_contact_relationship}
-                onChange={(e) => setEditUser({ ...editUser, emergency_contact_relationship: e.target.value })}
+                onChange={(e) =>
+                  setEditUser({ ...editUser, emergency_contact_relationship: e.target.value })
+                }
                 className="border p-2 rounded w-full"
               />
-              {renderErrorMessage("emergency_contact_relationship")}
+              {renderErrorMessage('emergency_contact_relationship')}
             </label>
             <label className="block mb-2">
               アレルギー:
@@ -455,14 +512,11 @@ const UsersManagement: React.FC = () => {
               />
             </label>
             <div className="flex justify-end space-x-2 mt-4">
-              <button 
-                onClick={handleUpdateUser}
-                className="bg-blue-500 text-white px-4 py-2 rounded"
-              >
+              <button onClick={handleUpdateUser} className="bg-blue-500 text-white px-4 py-2 rounded">
                 更新
               </button>
-              <button 
-                onClick={() => setEditUser(null)} 
+              <button
+                onClick={() => setEditUser(null)}
                 className="bg-gray-500 text-white px-4 py-2 rounded"
               >
                 キャンセル
