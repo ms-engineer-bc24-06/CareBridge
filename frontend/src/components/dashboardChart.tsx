@@ -108,11 +108,24 @@ const DashboardChart = ({ userUuid }: DashboardChartProps) => {
   // 体温グラフのオプション
   const temperatureOptions = {
     responsive: true,
-    maintainAspectRatio: false, // サイズ調整を許可
+    maintainAspectRatio: true, // サイズ調整を許可
+    aspectRatio: 1.8, // グラフの縦横比を設定
     scales: {
+      x: {
+        ticks: {
+          callback: function (value: any, index: any, values: any) {
+            const date = new Date(labels[index]);
+            return `${date.getMonth() + 1}/${date.getDate()}`; // MM/DD形式で表示
+          },
+        },
+      },
       y: {
         min: 35,
         max: 41,
+        ticks: {
+          maxTicksLimit: 6, // 最大ティック数を指定
+          minTicksLimit: 5, // 最小ティック数を指定
+        },
       },
     },
   };
@@ -120,49 +133,37 @@ const DashboardChart = ({ userUuid }: DashboardChartProps) => {
   // 血圧グラフのオプション
   const bloodPressureOptions = {
     responsive: true,
-    maintainAspectRatio: false, // サイズ調整を許可
+    maintainAspectRatio: true, // サイズ調整を許可
+    aspectRatio: 1.8, // グラフの縦横比を設定
     scales: {
+      x: {
+        ticks: {
+          callback: function (value: any, index: any, values: any) {
+            const date = new Date(labels[index]);
+            return `${date.getMonth() + 1}/${date.getDate()}`; // MM/DD形式で表示
+          },
+        },
+      },
       y: {
         min: 60,
         max: 160,
+        ticks: {
+          autoSkip: false, // ラベルの自動省略を無効にする
+          maxTicksLimit: 6, // 最大ティック数を指定（必要に応じて調整）
+        },
       },
     },
   };
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div
-        className="mb-8 sm:mb-0"
-        style={{
-          width: "100%",
-          height: "200px", // sm以下では高さ200px
-          maxWidth: "400px", // sm以上では最大幅400px
-          maxHeight: "300px", // sm以上では最大高さ300px
-        }}
-      >
+      <div className="mb-8 sm:mb-0 w-full">
         <h2 className="md:text-xl text-lg mb-2">体温</h2>
-        <Line
-          data={temperatureData}
-          options={temperatureOptions}
-          width={400}
-          height={300}
-        />
+        <Line data={temperatureData} options={temperatureOptions} />
       </div>
-      <div
-        style={{
-          width: "100%",
-          height: "200px", // sm以下では高さ200px
-          maxWidth: "400px", // sm以上では最大幅400px
-          maxHeight: "300px", // sm以上では最大高さ300px
-        }}
-      >
+      <div className="w-full">
         <h2 className="md:text-xl text-lg mb-2">血圧</h2>
-        <Line
-          data={bloodPressureData}
-          options={bloodPressureOptions}
-          width={400}
-          height={300}
-        />
+        <Line data={bloodPressureData} options={bloodPressureOptions} />
       </div>
     </div>
   );
