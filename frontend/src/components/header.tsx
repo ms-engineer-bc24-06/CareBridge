@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import axios from "axios";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { getAuth, signOut, onAuthStateChanged } from "firebase/auth";
 
 const Header = () => {
   // スタッフ名を保持する状態変数
@@ -35,14 +35,15 @@ const Header = () => {
     return () => unsubscribe();
   }, []);
 
-  // ログアウト処理を実行する関数
+  // Firebaseでのログアウト処理を実行する関数
   const handleLogout = async () => {
+    const auth = getAuth(); // Firebase認証のインスタンスを取得
     try {
-      await axios.post("http://localhost:8000/api/logout/");
+      await signOut(auth); // Firebaseからのログアウト
       // ログアウト後、サインインページにリダイレクト
       router.push("/staff/signin");
     } catch (error) {
-      console.error("ログアウトに失敗しました");
+      console.error("ログアウトに失敗しました:");
     }
   };
 
