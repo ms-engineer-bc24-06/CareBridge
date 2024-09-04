@@ -3,14 +3,30 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation"; // 現在のパスを取得するためのフック
+import { usePathname, useRouter } from "next/navigation"; // 現在のパスを取得するためのフック
+import { signOut } from "firebase/auth"; // Firebaseのサインアウト機能をインポート
+import { auth } from "../lib/firebaseConfig"; // 初期化されたauthをインポート
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname(); // 現在のパスを取得
+  const router = useRouter(); // ルーターを取得
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
+  };
+
+  // Firebaseでのログアウト処理
+  const handleLogout = async () => {
+    try {
+      // Firebaseからのログアウト
+      await signOut(auth);
+
+      // ログアウト後、サインインページにリダイレクト
+      router.push("/user/signin");
+    } catch (error) {
+      console.error("ログアウトに失敗しました");
+    }
   };
 
   return (
@@ -46,7 +62,7 @@ const Header = () => {
                     <Link href="/account-settings">アカウント設定</Link>
                   </li>
                   <li className="p-2 hover:bg-gray-100">
-                    <Link href="/logout">ログアウト</Link>
+                    <button onClick={handleLogout}>ログアウト</button>
                   </li>
                 </ul>
               </div>
