@@ -10,9 +10,9 @@
 （一般的な情報一元管理サービス）とは違って、
 （双方向から情報提供をしやすい機能）が備わっている。
 
-ロゴ（仮）
+Care Bridgeロゴ
 
-![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/9253397d-598f-4d4b-b1a7-c4bc2e3b6f4e/3ebf4966-5ba9-4884-b133-0555d900ff0a/Untitled.png)
+![varebridge_logo](images/image_logo.png)
 
 | 項目             | 内容                                                                       |
 | ---------------- | -------------------------------------------------------------------------- |
@@ -22,7 +22,7 @@
 | プロダクトの概要 | 介護施設職員と利用者家族の情報を一括管理し、共有を効率化するためのシステム |
 
 - ビジネスモデル
-  ![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/9253397d-598f-4d4b-b1a7-c4bc2e3b6f4e/f17f2aa3-91e1-4341-a2d5-f13000bf16bb/Untitled.jpeg)
+  ![carebridge_businessmodel](images/iamge_business_model.jpg)
 
 ### 1. 背景と目的
 
@@ -36,7 +36,7 @@
 ### 2. 機能要件
 
 - 画面遷移図
-  ![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/9253397d-598f-4d4b-b1a7-c4bc2e3b6f4e/edd8c93d-ff19-49a2-9ffd-a50cae9cd27d/Untitled.jpeg)
+  ![Screen Transition Diagram](images/image_screen_transition.jpg)
 
 | 機能カテゴリ           | サブカテゴリ             | 機能内容                                                             |
 | ---------------------- | ------------------------ | -------------------------------------------------------------------- |
@@ -70,11 +70,12 @@
 | 項目                     | 内容                                                                                                                                                                                                                                                                                       |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | フロントエンド技術       | React/next.js 　：BC 中使い慣れてるため。世界的にも利用率が高いため。                                                                                                                                                                                                                      |
-| バックエンド技術         | Python/Django 　：Python は LLM に適している。（豊富なライブラリ、活発なコミュニティ、簡潔なシンタックス、高度なデータ処理能力、統合環境の提供、そして API との統合が容易であるため）/Django は大規模開発に最適で、迅速な開発、強力な ORM、優れたセキュリティ、そして LLM との統合が容易。 |
+| バックエンド技術         | Python/Django 　：Python は LLM に適している。（豊富なライブラリ、活発なコミュニティ、簡潔なシンタックス、高度なデータ処理能力、統合環境の提供、そして API との統合が容易であるため）/Django は大規模開発に最適で、迅速な開発、強力な ORM、優れたセキュリティ、そして LLM との統合が容易 |
 | データベース             | PostgreSQL：正確なデータ管理、機能の豊富さ、そして高いセキュリティ機能を兼ね備えており、介護施設情報共有システムに適してると考えたから                                                                                                                                                     |
-| クラウドプラットフォーム | AWS：拡張性、信頼性、広範なサービスと 24 時間日本語サポートが強みのため。                                                                                                                                                                                                                  |
-| 認証機能                 | Firebase：コストが抑えられる（無料プランでも多くの機能が使用可能）であることと、BC の学習で使用し使い慣れているため。                                                                                                                                                                      |
-| 決済機能                 | Stripe                                                                                                                                                                                                                                                                                     |
+| クラウドプラットフォーム | GCR：Firebase、Cloud Vision APIなど、Googleの他のサービスとシームレスに統合できるため                                                                                                                                                                                                                  |
+| 認証機能                 | Firebase：コストが抑えられる（無料プランでも多くの機能が使用可能）であることと、BC の学習で使用し使い慣れているため                                                                                                                                                                      |
+| 決済機能                 | Stripe                                    
+| OCR                      | Google Vision API：画像生成には複雑なレイアウトや手書き文字の認識においても精度が高いため                                                                                                                                                                                                                                                 |
 
 - [技術選定の理由と比較](https://catkin-dracopelta-417.notion.site/dda06d9f4ccc41b1911c4db4b944b34e?pvs=4)
 
@@ -135,17 +136,23 @@
 
 ### 10. 各種設計図
 
+- [API 設計書](https://www.notion.so/API-21e4998937244ffd9e4fc0b1f647e50c?pvs=21)
+- [テスト設計書](https://catkin-dracopelta-417.notion.site/32d82f42e0a94be3a59d43ed4a29664b?pvs=4)
 - [ワイヤーフレーム素案](https://www.figma.com/design/f8uJSbohMpWkh4RS20KpTv/Care-Bridge?t=dfsJ1Op5bNChTUof-1)
-- クラス図
-  ![carebridge_0806_01.jpg](https://prod-files-secure.s3.us-west-2.amazonaws.com/9253397d-598f-4d4b-b1a7-c4bc2e3b6f4e/ec6e8040-3b40-4754-af0a-8dc390ba6538/carebridge_0806_01.jpg)
+- [デザインガイドライン](https://www.notion.so/cfc849bea2ce49edbbde17aa1996bafb?pvs=21)
 - [DB 設計書](https://docs.google.com/spreadsheets/d/13bnvCpj7YeX6cxNilF4RP8dVmS35m5HR6UPSXXV_-rY/edit?usp=sharing)
 - ER 図
   [carebridge | DrawSQL](https://drawsql.app/teams/iyochica/diagrams/carebridge)
-- フロー図
-  ![flow.jpg](https://prod-files-secure.s3.us-west-2.amazonaws.com/9253397d-598f-4d4b-b1a7-c4bc2e3b6f4e/9fd6e275-93ed-4bba-a9c7-d63410d5b79b/flow.jpg)
+<details>
+  <summary>クラス図</summary>
 
-- [API 設計書](https://www.notion.so/API-21e4998937244ffd9e4fc0b1f647e50c?pvs=21)
+  ![carebridge_class](images/image_class.jpg)
 
-- [デザインガイドライン](https://www.notion.so/cfc849bea2ce49edbbde17aa1996bafb?pvs=21)
+</details>
 
-- [テスト設計書](https://catkin-dracopelta-417.notion.site/32d82f42e0a94be3a59d43ed4a29664b?pvs=4)
+<details>
+  <summary>認証フロー図</summary>
+
+  ![carebridge_loginflow](images/image_login_flow.jpg)
+
+</details>
