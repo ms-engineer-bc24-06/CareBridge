@@ -9,3 +9,4 @@ stripe
 python-dotenv
 firebase-admin==5.3.0 
 google-cloud-vision>=3.0.2
+coverage

@@ -36,6 +36,14 @@ INSTALLED_APPS = [
     'caredata',
     'payments',  # 支払い情報のアプリをここに追加
 ]
+#、テスト環境でマイグレーションを無効化
+class DisableMigrations(object):
+    def __contains__(self, item):
+        return True
+    def __getitem__(self, item):
+        return None
+
+MIGRATION_MODULES = DisableMigrations()
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',  # 最初の方に配置

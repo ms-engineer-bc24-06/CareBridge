@@ -10,7 +10,7 @@
 （一般的な情報一元管理サービス）とは違って、
 （双方向から情報提供をしやすい機能）が備わっている。
 
-Care Bridgeロゴ
+Care Bridge ロゴ
 
 ![varebridge_logo](images/image_logo.png)
 
@@ -24,7 +24,7 @@ Care Bridgeロゴ
 <details>
   <summary>ビジネスモデル</summary>
 
-  ![carebridge_businessmodel](images/iamge_business_model.jpg)
+![carebridge_businessmodel](images/iamge_business_model.jpg)
 
 </details>
 
@@ -42,7 +42,7 @@ Care Bridgeロゴ
 <details>
   <summary>画面遷移図</summary>
 
-  ![Screen Transition Diagram](images/image_screen_transition.jpg)
+![Screen Transition Diagram](images/image_screen_transition.jpg)
 
 </details>
 
@@ -75,15 +75,15 @@ Care Bridgeロゴ
 
 ### 4. 技術スタック
 
-| 項目                     | 内容                                                                                                                                                                                                                                                                                       |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| フロントエンド技術       | React/next.js 　：BC 中使い慣れてるため。世界的にも利用率が高いため。                                                                                                                                                                                                                      |
+| 項目                     | 内容                                                                                                                                                                                                                                                                                     |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| フロントエンド技術       | React/next.js 　：BC 中使い慣れてるため。世界的にも利用率が高いため。                                                                                                                                                                                                                    |
 | バックエンド技術         | Python/Django 　：Python は LLM に適している。（豊富なライブラリ、活発なコミュニティ、簡潔なシンタックス、高度なデータ処理能力、統合環境の提供、そして API との統合が容易であるため）/Django は大規模開発に最適で、迅速な開発、強力な ORM、優れたセキュリティ、そして LLM との統合が容易 |
-| データベース             | PostgreSQL：正確なデータ管理、機能の豊富さ、そして高いセキュリティ機能を兼ね備えており、介護施設情報共有システムに適してると考えたから                                                                                                                                                     |
-| クラウドプラットフォーム | GCR：Firebase、Cloud Vision APIなど、Googleの他のサービスとシームレスに統合できるため                                                                                                                                                                                                                  |
+| データベース             | PostgreSQL：正確なデータ管理、機能の豊富さ、そして高いセキュリティ機能を兼ね備えており、介護施設情報共有システムに適してると考えたから                                                                                                                                                   |
+| クラウドプラットフォーム | GCR：Firebase、Cloud Vision API など、Google の他のサービスとシームレスに統合できるため                                                                                                                                                                                                  |
 | 認証機能                 | Firebase：コストが抑えられる（無料プランでも多くの機能が使用可能）であることと、BC の学習で使用し使い慣れているため                                                                                                                                                                      |
-| 決済機能                 | Stripe                                    
-| OCR                      | Google Vision API：画像生成には複雑なレイアウトや手書き文字の認識においても精度が高いため                                                                                                                                                                                                                                                 |
+| 決済機能                 | Stripe                                                                                                                                                                                                                                                                                   |
+| OCR                      | Google Vision API：画像生成には複雑なレイアウトや手書き文字の認識においても精度が高いため                                                                                                                                                                                                |
 
 - [技術選定の理由と比較](https://catkin-dracopelta-417.notion.site/dda06d9f4ccc41b1911c4db4b944b34e?pvs=4)
 
@@ -112,7 +112,8 @@ Care Bridgeロゴ
 | テスト戦略   | ユニットテストで各機能を個別に検証し、インテグレーションテストでモジュール間の連携を確認。E2E テストでユーザーフロー全体をテストします。 |
 | テストケース | ログイン、ユーザー登録、連絡事項管理、健康状態管理などの機能に対して、正常系・異常系の動作をテストします。                               |
 | テスト環境   | ローカル環境でのテストに加え、Docker でテスト環境を構築し、本番環境に近い条件でテストを実施します。                                      |
-| バグ管理     | GitHub Issues でバグを報告・追跡し、修正の進捗を管理します。解決後、再テストを行いバグの修正を確認します。                               |
+| カバレッジ   | カバレッジ目標 60％ 　[カバレッジレポート](https://www.notion.so/b3b970719b944a3a99ed9976d227e17e?showMoveTo=true&saveParent=true)       |
+| 設計図       | ページ下部設計書一覧に記載                                                                                                               |
 
 ### 9. 参考資料
 
@@ -151,8 +152,8 @@ Care Bridgeロゴ
 - [DB 設計書](https://docs.google.com/spreadsheets/d/13bnvCpj7YeX6cxNilF4RP8dVmS35m5HR6UPSXXV_-rY/edit?usp=sharing)
 - ER 図
   [carebridge | DrawSQL](https://drawsql.app/teams/iyochica/diagrams/carebridge)
-<details>
-  <summary>クラス図</summary>
+  <details>
+    <summary>クラス図</summary>
 
   ![carebridge_class](images/image_class.jpg)
 
@@ -161,6 +162,6 @@ Care Bridgeロゴ
 <details>
   <summary>認証フロー図</summary>
 
-  ![carebridge_loginflow](images/image_login_flow.jpg)
+![carebridge_loginflow](images/image_login_flow.jpg)
 
 </details>
