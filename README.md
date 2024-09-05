@@ -21,8 +21,12 @@ Care Bridgeロゴ
 | 作成者           | あみ・はるか・ななこ                                                       |
 | プロダクトの概要 | 介護施設職員と利用者家族の情報を一括管理し、共有を効率化するためのシステム |
 
-- ビジネスモデル
-  ![carebridge_businessmodel](images/iamge_business_model.jpg)
+<details>
+  <summary>ビジネスモデル</summary>
+
+  ![carebridge_businessmodel](images/image_business_model.jpg)
+
+</details>
 
 ### 1. 背景と目的
 
@@ -35,8 +39,12 @@ Care Bridgeロゴ
 
 ### 2. 機能要件
 
-- 画面遷移図
+<details>
+  <summary>画面遷移図</summary>
+
   ![Screen Transition Diagram](images/image_screen_transition.jpg)
+
+</details>
 
 | 機能カテゴリ           | サブカテゴリ             | 機能内容                                                             |
 | ---------------------- | ------------------------ | -------------------------------------------------------------------- |
