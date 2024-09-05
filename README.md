@@ -24,7 +24,7 @@ Care Bridgeロゴ
 <details>
   <summary>ビジネスモデル</summary>
 
-  ![carebridge_businessmodel](images/image_business_model.jpg)
+  ![carebridge_businessmodel](images/iamge_business_model.jpg)
 
 </details>
 
@@ -128,7 +128,7 @@ Care Bridgeロゴ
 
   [介護 DX カオスマップ 2024](https://1c754cad-db6e-4c95-8133-cb4a1d58d2d5.filesusr.com/ugd/4ed477_3d382f2b6f3b45998cb3c223e0bbf810.pdf)
 
-  [ND ソフトウェア youtube に介護施設導入のメリットとか利用者インタビューもある](https://www.ndsoft.jp/)
+  [ND ソフトウェア](https://www.ndsoft.jp/)
 
   [KANAMIC NeTWORK](https://www.kanamic.net/care/index.html)
 
