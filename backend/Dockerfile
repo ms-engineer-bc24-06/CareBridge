@@ -1,6 +1,6 @@
 
-# 基本イメージとして公式の Python 3.9 イメージを使用
-FROM python:3.9
+# 基本イメージを x86_64 アーキテクチャに変更
+FROM --platform=linux/amd64 python:3.9-slim-buster
 
 # 作業ディレクトリを設定
 WORKDIR /app
