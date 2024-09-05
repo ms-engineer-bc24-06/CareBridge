@@ -4,20 +4,18 @@ import WebPageHeader from '../../../components/WebPageHeader';
 import WebHomePageMenuBar from '../../../components/webHomePageMenuBar'; 
 import { useRouter } from 'next/navigation';
 
-
 const Details: React.FC = () => {
-  const router = useRouter(); // ルーターを初期化
+  const router = useRouter(); 
 
-  const handleContactClick = () => {
-    router.push('/webHomePage/contact'); // 指定されたページに遷移
+  const handleContactClick = (): void => {
+    router.push('/webHomePage/contact'); 
   };
 
   return (
     <div>
-      <WebPageHeader />  {/* ヘッダーを表示 */}
-      <WebHomePageMenuBar /> {/* WebHomePageMenuBarを表示 */}
+      <WebPageHeader /> 
+      <WebHomePageMenuBar /> 
       
-      {/* 背景画像セクション */}
       <div
         style={{
           backgroundImage: "url('/images/homepage_background_staff.jpeg')",
@@ -112,43 +110,80 @@ const Details: React.FC = () => {
 
       {/* サービスセクション */}
       <div
-      id="services" 
-      style={{
-        padding: '4rem',
-        backgroundColor: '#f7f7f7', 
-        color: '#023059',
-        borderRadius: '10px',
-        maxWidth: '60%',
-        margin: '4rem auto 0 auto', 
-        textAlign: 'center', 
-        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', 
-      }}
-    >
-      <h2>
-        <img src="/images/webHomePage_services_icon.png" alt="Services" className="inline-block w-6 mr-2" />
-        サービス
-      </h2>
-      <p>
-        CareBridge（ケアブリ）は、介護現場と家族をシームレスにつなぎ、安心・信頼の情報共有を提供します。詳細はこちらをご覧ください。
-      </p>
-      {/* 問合せ/利用申込ボタン */}
-      <button
-        onClick={handleContactClick}
+        id="services" 
         style={{
-          padding: '1rem 2rem',
-          backgroundColor: 'white', // ボタンの背景色を白に設定
-          color: '#E78740', // 文字の色をオレンジに設定
-          border: '2px solid #E78740', // ボタンのボーダーもオレンジに設定
-          borderRadius: '5px',
-          fontSize: '1rem',
-          fontWeight: 'bold', // 文字を太くする
-          cursor: 'pointer',
-          marginTop: '2rem',
+          padding: '4rem',
+          backgroundColor: '#f7f7f7', 
+          color: '#023059',
+          borderRadius: '10px',
+          maxWidth: '60%',
+          margin: '4rem auto 0 auto', 
+          textAlign: 'center', 
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', 
         }}
       >
-        問合せ/利用申込
-      </button>
+        <h2>
+          <img src="/images/webHomePage_services_icon.png" alt="Services" className="inline-block w-6 mr-2" />
+          サービス
+        </h2>
+        <p>
+          CareBridge（ケアブリ）は、介護現場と家族をシームレスにつなぎ、安心・信頼の情報共有を提供します。詳細はこちらをご覧ください。
+        </p>
+
+        {/* ここから追加されたコンテンツ */}
+        <div style={{ marginTop: '4rem' }}>
+  <h2>4つの情報共有ツール</h2>
+  <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+    <div style={{ width: '100%', textAlign: 'center' }}>
+      <div style={{ backgroundColor: 'white', color: '#FF8C00', padding: '1rem',border: '2px solid #FF8C00' }}>
+        <h3>ケア記録</h3>
+      </div>
+      <img src="/images/webpage_care1.png" alt="ケア記録" style={{ width: '100%', height: 'auto' }} />
+      <p>ケアの詳細な記録を管理できます。</p>
     </div>
+    <div style={{ width: '100%', textAlign: 'center' }}>
+    <div style={{ backgroundColor: 'white', color: '#FF8C00', padding: '1rem',border: '2px solid #FF8C00' }}> 
+        <h3>ダッシュボード</h3>
+      </div>
+      <img src="/images/webpage_dashboad2.png" alt="ダッシュボード" style={{ width: '100%', height: 'auto' }} />
+      <p>健康状態やケアの進捗を一目で確認できます。</p>
+    </div>
+    <div style={{ width: '100%', textAlign: 'center' }}>
+    <div style={{ backgroundColor: 'white', color: '#FF8C00', padding: '1rem',border: '2px solid #FF8C00' }}>
+        <h3>連絡ノート</h3>
+      </div>
+      <img src="/images/webpage_contact3.png" alt="連絡ノート" style={{ width: '100%', height: 'auto' }} />
+      <p>介護施設からの連絡事項をリアルタイムで確認できます。</p>
+    </div>
+    <div style={{ width: '100%', textAlign: 'center' }}>
+    <div style={{ backgroundColor: 'white', color: '#FF8C00', padding: '1rem',border: '2px solid #FF8C00' }}>
+        <h3>お薬ノート</h3>
+      </div>
+      <img src="/images/webpage_medicine4.png" alt="お薬ノート" style={{ width: '100%', height: 'auto' }} />
+      <p>処方薬の情報を簡単に管理。</p>
+    </div>
+  </div>
+</div>
+
+        {/* 問合せ/利用申込ボタン */}
+        <button
+          onClick={handleContactClick}
+          style={{
+            padding: '1rem 2rem',
+            backgroundColor: 'white', 
+            color: '#E78740', 
+            border: '2px solid #E78740', 
+            borderRadius: '5px',
+            fontSize: '1rem',
+            fontWeight: 'bold', 
+            cursor: 'pointer',
+            marginTop: '2rem',
+          }}
+        >
+          問合せ/利用申込
+        </button>
+      </div>
+
       {/* 料金セクション */}
       <div
         id="pricing"
@@ -174,7 +209,7 @@ const Details: React.FC = () => {
           lineHeight: '1.5', 
           marginBottom: '1.5rem',
         }}>
-          月額 3000円
+          月額 8800円
         </p>
         <p style={{ 
           fontSize: '1.2rem', 
@@ -207,6 +242,18 @@ const Details: React.FC = () => {
         </h2>
         <p>〒107-0052　東京都港区赤坂7-7-7 AmiHills-777</p>
         <p>交通のご案内: 東京メトロ千代田線 乃木坂駅 徒歩6分</p>
+        {/* Google Map の埋め込み */}
+        <div style={{ marginTop: '2rem' }}>
+          <iframe
+            src="https://www.google.com/maps/embed?pb=!1m16!1m12!1m3!1d3241.2596015894464!2d139.73008407647535!3d35.67060933055627!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!2m1!1z5p2x5Lqs6YO95riv5Yy66LWk5Z2CNy03LTcgQW1pSGlsbHMtNzc3!5e0!3m2!1sja!2sjp!4v1724687251344!5m2!1sja!2sjp"
+            width="600"
+            height="450"
+            style={{ border: '0' }}
+            allowFullScreen={true}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          ></iframe>
+        </div>
       </div>
 
       {/* 会社概要セクション */}
@@ -243,7 +290,6 @@ const Details: React.FC = () => {
         </div>
       </div>
 
-
       <style jsx>{`
         @keyframes fadeInText {
           from { opacity: 0; transform: translateY(10px); }
@@ -260,4 +306,3 @@ const Details: React.FC = () => {
 };
 
 export default Details;
-
