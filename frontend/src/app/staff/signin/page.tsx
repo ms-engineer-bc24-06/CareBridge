@@ -7,8 +7,8 @@ import Link from "next/link";
 
 const SignInPage: React.FC = () => {
   const router = useRouter();
-  const [email, setEmail] = useState<string>(""); // ユーザーのメールアドレスを保持
-  const [password, setPassword] = useState<string>(""); // ユーザーのパスワードを保持
+  const [email, setEmail] = useState<string>(""); 
+  const [password, setPassword] = useState<string>(""); 
   const [error, setError] = useState<string>("");
 
   const handleSignIn = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -20,26 +20,64 @@ const SignInPage: React.FC = () => {
         auth,
         email,
         password
-      ); // Firebaseでのサインイン
+      );
       const user = userCredential.user;
 
       // カスタムクレームを取得
       const idTokenResult = await user.getIdTokenResult();
       const role = idTokenResult.claims.role;
 
-      // 役割に応じてリダイレクトまたはエラーメッセージを表示
+      // 管理者権限があるか確認
       if (role === "admin") {
-        console.log(
-          "Sign in successful as admin, redirecting to /admin/dashboard"
-        );
-        router.push("/admin/dashboard"); // 管理者用ダッシュボードにリダイレクト
+        console.log("Admin role confirmed, proceeding with admin checks...");
+
+        // Firebase UIDを取得して、スタッフ情報をバックエンドから取得
+        const firebaseUid = user.uid;
+        console.log(firebaseUid);  // ここでUIDが正しいか確認
+
+        const response = await fetch(`http://localhost:8000/api/staffs/firebase/${firebaseUid}`, {
+          method: 'GET',
+          credentials: 'include', 
+        });
+
+
+        const staff = await response.json(); // この response はスタッフの情報を取得するためのもの
+        console.log("Staff data:", staff);  // スタッフデータ全体を出力して確認
+
+        if (staff) {
+          console.log("Staff data:", staff);  // ここでスタッフ情報が正しく取得できているか確認
+          const facilityId = staff.facility;
+          console.log("Facility ID:", facilityId);  // ここでfacilityIdを確認
+
+          localStorage.setItem('facilityId', facilityId);// ローカルストレージに facility_id を保存
+
+          // 施設のis_activeステータスをチェック
+          const facilityResponse = await fetch(`http://localhost:8000/api/facilities/${facilityId}`, {
+            method: 'GET',
+            credentials: 'include'
+          });
+
+          if (!facilityResponse.ok) {
+            throw new Error("施設情報の取得に失敗しました");
+          }
+
+          const facility = await facilityResponse.json();
+          console.log("Facility data:", facility);
+
+          if (facility.is_active) {
+            router.push("/admin/dashboard"); // 管理者用ダッシュボードにリダイレクト
+          } else {
+            router.push("/admin/payments"); // 決済ページへリダイレクト
+          }
+        } else {
+          setError("スタッフ情報が見つかりませんでした。");
+        }
       } else if (role === "staff") {
-        console.log("Sign in successful as staff, redirecting to /staff/users");
+        console.log("Staff user signed in, redirecting to staff dashboard...");
         router.push("/staff/users"); // 職員用トップページにリダイレクト
       } else {
-        setError(
-          "ログインできませんでした。メールアドレスとパスワードを確認してください。"
-        );
+        console.log("Role is not admin, role is:", role);
+        setError("アクセスが許可されていません。");
       }
     } catch (error) {
       console.error("ログインエラー:", error);
@@ -118,5 +156,4 @@ const SignInPage: React.FC = () => {
     </div>
   );
 };
-
 export default SignInPage;

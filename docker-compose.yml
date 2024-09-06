@@ -54,6 +54,13 @@ services:
     networks:
       - default
 
+  stripe-cli:
+    image: stripe/stripe-cli:latest
+    command: ["listen", "--forward-to", "http://backend:8000/api/stripe/webhook/"]
+    volumes:
+      - ~/.config/stripe:/home/stripe/.config/stripe
+    tty: true
+    
 networks:
   default:
     name: carebridge_network

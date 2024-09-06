@@ -1,145 +1,155 @@
-# import stripe
-# import os
-# from django.http import JsonResponse
-# from django.views.decorators.csrf import csrf_exempt
-
-# # 環境変数からStripeのシークレットキーを取得
-# stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
-
-# @csrf_exempt
-# def create_checkout_session(request):
-#     print("Received request to create checkout session")
-#     try:
-#         # Stripe Checkoutセッションをサブスクリプションモードで作成
-#         session = stripe.checkout.Session.create(
-#             payment_method_types=['card'],
-#             line_items=[{
-#                 'price_data': {
-#                     'currency': 'jpy',
-#                     'product_data': {
-#                         'name': 'CareBridge サービス',
-#                     },
-#                     'recurring': {
-#                         'interval': 'month',
-#                     },
-#                     'unit_amount': 1000,
-#                 },
-#                 'quantity': 1,
-#             }],
-#             mode='subscription',
-#             subscription_data={
-#                 'trial_period_days': 30,  # 無料期間を30日に設定
-#             },
-#             success_url='http://localhost:3000/admin/dashboard',
-#             cancel_url='http://localhost:3000/admin/cancel',
-#         )
-#         print("Checkout session created:", session.id)
-#         return JsonResponse({'id': session.id})
-#     except Exception as e:
-#         print("Error creating checkout session:", str(e))
-#         return JsonResponse({'error': str(e)}, status=500)
 import stripe
 import os
+import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from .models import Subscription
+from carebridge.models import Payment, Facility
+from datetime import datetime
+import logging
+import traceback
 
+# ロガーを設定
+logger = logging.getLogger(__name__)
 
-# StripeのAPIキーを環境変数から取得し、Stripeの初期設定を行う
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
+
 
 @csrf_exempt
 def create_checkout_session(request):
-    # ログとして、Checkoutセッション作成リクエストが受け取られたことを出力
-    print("Received request to create checkout session")
     try:
-        # StripeのCheckoutセッションを作成するための処理
+        data = json.loads(request.body)
+        facility_id = data.get('facilityId')
+        if not facility_id:
+            return JsonResponse({'error': 'facilityId is required'}, status=400)
+        
         session = stripe.checkout.Session.create(
-            payment_method_types=['card'],  # 支払い方法をカードに設定
+            payment_method_types=['card'],
             line_items=[{
                 'price_data': {
-                    'currency': 'jpy',  # 通貨を日本円に設定
+                    'currency': 'jpy',
                     'product_data': {
-                        'name': 'CareBridge サービス',  # 商品名を指定
+                        'name': 'CareBridge サービス',
                     },
                     'recurring': {
-                        'interval': 'month',  # 月ごとのサブスクリプションとして設定
+                        'interval': 'month',
                     },
-                    'unit_amount': 1000,  # 価格を1000円に設定
+                    'unit_amount': 8800,
                 },
-                'quantity': 1,  # 数量を1に設定
+                'quantity': 1,
             }],
-            mode='subscription',  # サブスクリプションモードでのCheckoutセッションを作成
+            mode='subscription',
             subscription_data={
-                'trial_period_days': 30,  # 無料試用期間を30日間に設定
+                'trial_period_days': 30,
             },
-            success_url='http://localhost:3000/admin/dashboard',  # 支払い成功後のリダイレクト先URL
-            cancel_url='http://localhost:3000/admin/cancel',  # 支払いキャンセル時のリダイレクト先URL
+            success_url='http://localhost:3000/admin/dashboard',
+            cancel_url='http://localhost:3000/admin/cancel',
+            metadata={
+                'facility_id': str(facility_id)
+            }
         )
-        # セッションIDをログとして出力
-        print("Checkout session created:", session.id)
-        # セッションIDをJSON形式でクライアントに返す
         return JsonResponse({'id': session.id})
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
     except Exception as e:
-        # エラーが発生した場合、エラーメッセージをログとして出力し、クライアントにエラーを返す
-        print("Error creating checkout session:", str(e))
         return JsonResponse({'error': str(e)}, status=500)
+
 
 @csrf_exempt
 @require_POST
 def stripe_webhook(request):
-    # Stripeのウェブフックリクエストのペイロード（ボディ）を取得
     payload = request.body
-    # リクエストヘッダーからStripe署名を取得
     sig_header = request.META['HTTP_STRIPE_SIGNATURE']
-    # Stripeのウェブフックシークレットを環境変数から取得
     endpoint_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
 
     try:
-        # ペイロードの検証とイベントの構築を行う
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, endpoint_secret
-        )
+        logger.info("Starting webhook event construction")
+        event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
+        logger.info("Webhook event constructed successfully: %s", event)
+
+        event_type = event['type']
+        session = event['data']['object']
+
+        # デバッグログの追加
+        logger.debug(f"Event data object: {session}")
+
+        facility_id = None
+        stripe_payment_method_id = None
+        stripe_subscription_id = None
+        trial_end_date = None
+        status = None
+
+        if event_type == 'checkout.session.completed':
+            facility_id = event['data']['object'].get('metadata', {}).get('facility_id')
+            if not facility_id:
+                logger.error(f"facility_id is missing in the event metadata. Event type: {event_type}")
+                return JsonResponse({'error': 'facility_id is missing'}, status=400)
+            try:
+                facility_id = int(facility_id)
+            except ValueError:
+                logger.error(f"facility_id is not an integer: {facility_id}")
+                return JsonResponse({'error': 'facility_id is not a valid integer'}, status=400)
+            logger.info(f"facility_id found: {facility_id}")
+            logger.info(f"facility_id: {facility_id}, type: {type(facility_id)}")
+
+            stripe_subscription_id = event['data']['object'].get('subscription')
+            if not stripe_subscription_id:
+                logger.error(f"subscription is missing in the session. Event type: {event_type}")
+                return JsonResponse({'error': 'stripe_subscription_id is missing'}, status=400)
+            logger.info(f"Stripe subscription id found: {stripe_subscription_id}")
+
+            status = event['data']['object'].get('status')
+            if not status:
+                logger.error(f"status is missing in the event data. Event type: {event_type}")
+                return JsonResponse({'error': 'status is missing'}, status=400)
+            logger.info(f"Status found: {status}")
+
+        # Facility の取得と is_active の更新
+        if facility_id:
+            try:
+                facility = Facility.objects.get(id=facility_id)
+                logger.info(f"Retrieved facility: {facility}")
+                
+                # is_active フィールドを True に更新
+                facility.is_active = True
+                facility.save()
+                logger.info(f"Updated facility {facility_id} to active.")
+
+                payment, created = Payment.objects.get_or_create(
+                    facility=facility,
+                    defaults={
+                        'stripe_subscription_id': stripe_subscription_id,
+                        'stripe_payment_method_id': stripe_payment_method_id,
+                        'trial_end_date': trial_end_date,
+                        'status': status,
+                    }
+                )
+                logger.info(f"Payment record created: {created}")
+                logger.info(f"Payment details: {payment}")
+
+                if not created:
+                    payment.stripe_subscription_id = stripe_subscription_id
+                    payment.stripe_payment_method_id = stripe_payment_method_id
+                    payment.trial_end_date = trial_end_date
+                    payment.status = status
+                    payment.save()
+                    payment.refresh_from_db()
+                    logger.info(f"stripe_payment_method_id after saving: {payment.stripe_payment_method_id}")
+                    logger.info(f"Updated Payment record for facility_id: {facility_id}")
+            
+            except Facility.DoesNotExist:
+                logger.error(f"Facility not found for id: {facility_id}")
+                return JsonResponse({'error': 'Facility not found'}, status=404)
+
+        return JsonResponse({'status': 'success'})
+
     except ValueError as e:
-        # ペイロードが無効な場合のエラーハンドリング
-        return JsonResponse({'status': 'invalid payload'}, status=400)
+        logger.error(f"Invalid payload: {str(e)}")
+        return JsonResponse({'error': 'Invalid payload'}, status=400)
     except stripe.error.SignatureVerificationError as e:
-        # 署名が無効な場合のエラーハンドリング
-        return JsonResponse({'status': 'invalid signature'}, status=400)
-
-    # 受信したイベントが支払い成功の場合の処理
-    if event['type'] == 'invoice.payment_succeeded':
-        # 支払いに関する請求書オブジェクトを取得
-        invoice = event['data']['object']
-        # サブスクリプションIDを取得
-        subscription_id = invoice['subscription']
-        
-        try:
-            # DB内のサブスクリプションを検索し、ステータスを更新
-            subscription = Subscription.objects.get(stripe_subscription_id=subscription_id)
-            subscription.status = 'active'  # ステータスを「active」に更新
-            subscription.save()  # 更新内容を保存
-        except Subscription.DoesNotExist:
-            # サブスクリプションが存在しない場合は何もしない
-            pass
-
-    # サブスクリプションがキャンセルされた場合の処理
-    elif event['type'] == 'customer.subscription.deleted':
-        # サブスクリプションIDを取得
-        subscription_id = event['data']['object']['id']
-
-        try:
-            # DB内のサブスクリプションを検索し、ステータスをキャンセルに更新
-            subscription = Subscription.objects.get(stripe_subscription_id=subscription_id)
-            subscription.status = 'canceled'
-            subscription.save()
-        except Subscription.DoesNotExist:
-            # サブスクリプションが存在しない場合は何もしない
-            pass
-
-    # 他のイベントタイプについても処理が必要であれば、ここに追加可能
-
-    # 処理が成功したことをクライアントに返す
-    return JsonResponse({'status': 'success'}, status=200)
-
+        logger.error(f"Invalid signature: {str(e)}")
+        return JsonResponse({'error': 'Invalid signature'}, status=400)
+    except Exception as e:
+        logger.error(f"Webhook error: {str(e)}")
+        logger.error(f"Stack trace: {traceback.format_exc()}")
+        return JsonResponse({'error': 'Webhook error'}, status=500)

@@ -50,3 +50,6 @@ serviceAccountKey.json
 /backend/carebridge/credentials/*.json
 
 /backend/carebridge/.coverage
+
+# Google Cloud credentials
+application_default_credentials.json
