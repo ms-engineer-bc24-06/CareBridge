@@ -2,6 +2,7 @@
 
 ### プロダクト全体像
 
+
 （介護施設職員間、利用者家族の間での情報共有を効率化し、介護職員・利用者家族ともに負担を軽減。コミュニケーションの摩擦軽減）したい
 （介護施設職員）向けの、
 （CareBridge（ケアブリ））というプロダクトは、
@@ -42,7 +43,7 @@ Care Bridge ロゴ
 <details>
   <summary>画面遷移図</summary>
 
-![Screen Transition Diagram](images/image_screen_transition.jpg)
+![Screen Transition Diagram](frontend/public/imagesimage_screen_transition.jpg)
 
 </details>
 
@@ -63,15 +64,63 @@ Care Bridge ロゴ
 |                        | 職員登録管理             | - 新規職員の登録、情報の表示、編集、削除                             |
 |                        | 利用者登録管理           | - 新規利用者の登録、情報の表示、編集、削除                           |
 
-### 3. 非機能要件
+## 3. 非機能要件
 
-| 項目             | 内容 |
-| ---------------- | ---- |
-| パフォーマンス   |      |
-| スケーラビリティ |      |
-| 可用性           |      |
-| セキュリティ     |      |
-| ユーザビリティ   |      |
+### 運用設計
+
+| 非機能要件分類 | 設計・対策 | 備考 |
+| --- | --- | --- |
+| ログ管理 | Google Cloud Logging を利用してログをアーカイブし、一定期間保持する設定を行う予定 | Google Cloud Logging で自動的に管理予定 |
+| サーバー状態モニタリング ※CPU、メモリ、ディスク使用率を監視 | Google Cloud Monitoring のアラート機能を利用して監視 | Google Cloud Monitoring でアラート設定済み |
+| 運用コスト | Google Cloud Billing を使用し、月次で予算確認と費用対策を実施予定 | Google Cloud Pricing Calculator で予測コストも算出可能予定 |
+| デプロイフローの明確化 | Docker を使ったコンテナ管理と CI/CD の設定 | 自動デプロイと環境構築を整備中 |
+
+### 性能設計
+
+| 非機能要件分類 | 設計・対策 | 備考 |
+| --- | --- | --- |
+| 性能要件の定義（レスポンスタイム、スループット） | レスポンスタイムやスループットをGoogle Cloud Monitoringで測定・追跡予定 | カスタムメトリクスを設定し、性能指標をリアルタイムで確認予定 |
+| 性能測定の仕組み | Google Cloud Monitoring でアプリケーションのパフォーマンスを測定予定 | レスポンスタイム、CPU使用率、メモリ使用率などのモニタリング予定 |
+| キャッシュの設計 | Memcached を導入してキャッシュの設計を実現 | 頻繁にアクセスされるデータをキャッシュし、パフォーマンス向上 |
+| 適切なキャッシュ運用 | Memcached のヒット率やメモリ使用状況をGoogle Cloud Monitoringで監視 | キャッシュが適切に機能しているかを継続的に確認 |
+
+
+### ログ設計
+
+| 非機能要件分類 | 設計・対策 | 備考 |
+| --- | --- | --- |
+| メモリキャッシュの設定 | 開発環境では LocMemCache、本番環境では Memcached が使用され、リソース管理が可能 | 運用環境でのリソース消費を最小限に抑える対策 |
+| ログレベル設定 | 環境変数 DEBUG によって、開発環境と本番環境でログレベルを調整可能 | 開発環境ではデバッグログ、本番環境では INFO 以上のログ |
+| データベースログの独立管理 | Django のロギング機能を使用し、DB バックエンドのログをコンソールに出力 | 操作履歴やエラーログのトレースが可能 |
+| モニタリングとアラート | Google Cloud Monitoring でリソースの状態を監視し、アラート設定 | 異常時に早期対応が可能 |
+
+### 可用性設計
+
+| 非機能要件分類 | 設計・対策 | 備考 |
+| --- | --- | --- |
+| サーバー稼働状況のリアルタイム監視 | Google Cloud Monitoringを用いてリアルタイムでサーバーのCPU使用率などのメトリクスを監視し、グラフとしてダッシュボードに表示 | Google Cloud Monitoring で監視設定 |
+
+### セキュリティ
+
+| 非機能要件分類 | 設計・対策 | 備考 |
+| --- | --- | --- |
+| 認証・認可 | Firebaseによる認証と認可を実装 | Firebase Authenticationを使用 |
+| ロール管理 | Firebase Admin SDKを使用してロールごとの権限管理を実装 | 最小権限の原則を適用 |
+| クレデンシャル管理 | .envファイルでサービスアカウントキーなどのクレデンシャルを秘匿 | サービスアカウントの管理 |
+| パスワード管理 | Firebase Authenticationでパスワードは自動的にハッシュ化されて保存 | Firebase標準のハッシュ化 |
+| ユーザーID管理 | Firebaseで生成されるユーザーIDはランダムに生成される | 安全なID管理 |
+
+<details>
+  <summary>Google Cloud Monitoring</summary>
+
+  ### CPU 使用率アラート設定
+  ![GoogleCloudMonitoring_cpu](frontend/public/images/GoogleCloudMonitoring_cpu.png)
+
+  ### レスポンスタイムの測定
+  ![GoogleCloudMonitoring_response](frontend/public/images/GoogleCloudMonitoring_response.png)
+
+</details>
+
 
 ### 4. 技術スタック
 
