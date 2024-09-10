@@ -15,7 +15,6 @@ const SignInPage: React.FC = () => {
     event.preventDefault();
 
     try {
-      console.log("Attempting sign in with email:", email);
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
@@ -29,25 +28,19 @@ const SignInPage: React.FC = () => {
 
       // 管理者権限があるか確認
       if (role === "admin") {
-        console.log("Admin role confirmed, proceeding with admin checks...");
 
         // Firebase UIDを取得して、スタッフ情報をバックエンドから取得
         const firebaseUid = user.uid;
-        console.log(firebaseUid);  // ここでUIDが正しいか確認
 
         const response = await fetch(`http://localhost:8000/api/staffs/firebase/${firebaseUid}`, {
           method: 'GET',
           credentials: 'include', 
         });
 
-
         const staff = await response.json(); // この response はスタッフの情報を取得するためのもの
-        console.log("Staff data:", staff);  // スタッフデータ全体を出力して確認
 
         if (staff) {
-          console.log("Staff data:", staff);  // ここでスタッフ情報が正しく取得できているか確認
           const facilityId = staff.facility;
-          console.log("Facility ID:", facilityId);  // ここでfacilityIdを確認
 
           localStorage.setItem('facilityId', facilityId);// ローカルストレージに facility_id を保存
 
@@ -62,7 +55,6 @@ const SignInPage: React.FC = () => {
           }
 
           const facility = await facilityResponse.json();
-          console.log("Facility data:", facility);
 
           if (facility.is_active) {
             router.push("/admin/dashboard"); // 管理者用ダッシュボードにリダイレクト
@@ -73,14 +65,11 @@ const SignInPage: React.FC = () => {
           setError("スタッフ情報が見つかりませんでした。");
         }
       } else if (role === "staff") {
-        console.log("Staff user signed in, redirecting to staff dashboard...");
         router.push("/staff/users"); // 職員用トップページにリダイレクト
       } else {
-        console.log("Role is not admin, role is:", role);
         setError("アクセスが許可されていません。");
       }
     } catch (error) {
-      console.error("ログインエラー:", error);
       setError(
         "ログインできませんでした。メールアドレスとパスワードを確認してください。"
       );
