@@ -42,7 +42,7 @@ const FacilitiesManagement: React.FC = () => {
       const response = await axios.get(`http://localhost:8000/api/staffs/get_staff_facility_id/?firebase_uid=${uid}`);  // UIDをクエリパラメータとして施設IDを取得するエンドポイント
       setStaffFacilityId(response.data.facility_id); // 取得した施設IDを保存
     } catch (error) {
-      console.error("施設IDの取得中にエラーが発生しました", error);
+      console.error("施設IDの取得中にエラーが発生しました");
     }
   };
 
@@ -51,7 +51,7 @@ const FacilitiesManagement: React.FC = () => {
       const response = await axios.get<Facility>(`http://localhost:8000/api/facilities/${facilityId}/`);  // ログイン中のスタッフの施設情報を取得
       setFacility(response.data);  // 取得した施設情報をstateに保存
     } catch (error) {
-      console.error("施設情報の取得中にエラーが発生しました", error);
+      console.error("施設情報の取得中にエラーが発生しました");
     }
   };
 
@@ -63,7 +63,7 @@ const FacilitiesManagement: React.FC = () => {
         setIsEditing(false);  // 編集モードを終了
         setErrors({});  // エラーメッセージをクリア
       } catch (error) {
-        console.error("施設情報の更新中にエラーが発生しました", error);
+        console.error("施設情報の更新中にエラーが発生しました");
       }
     }
   };

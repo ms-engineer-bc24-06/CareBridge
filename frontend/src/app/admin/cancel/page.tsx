@@ -7,7 +7,6 @@ const stripePromise: Promise<Stripe | null> = loadStripe(process.env.NEXT_PUBLIC
 const PaymentPage: React.FC = () => {
   useEffect(() => {
     const handlePopState = (event: PopStateEvent) => {
-      console.log('User tried to navigate back');
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -31,7 +30,7 @@ const PaymentPage: React.FC = () => {
       });
 
       if (!response.ok) {
-        console.error('Failed to create checkout session:', response.statusText);
+        console.error('Failed to create checkout session:');
         return;
       }
 
@@ -45,7 +44,7 @@ const PaymentPage: React.FC = () => {
         console.error(result.error.message);
       }
     } catch (error) {
-      console.error('Error during checkout:', error);
+      console.error('Error during checkout:');
     }
   };
 
