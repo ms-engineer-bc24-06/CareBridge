@@ -5,6 +5,10 @@ import axios from "axios";
 import Link from "next/link";
 import { getAuth } from "firebase/auth";
 
+const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL, // 環境変数を使用
+});
+
 type User = {
   uuid: string;
   user_id: string;
@@ -57,8 +61,8 @@ const Users: React.FC = () => {
   // ユーザー情報をAPIから取得する関数
   const fetchUsers = async (firebaseUid: string) => {
     try {
-      const response = await axios.get<User[]>(
-        `http://localhost:8000/api/users/?firebase_uid=${firebaseUid}`
+      const response = await apiClient.get<User[]>(
+        `/api/users/?firebase_uid=${firebaseUid}`
       );
       setUsers(response.data);
       setFilteredUsers(response.data); // 初期状態で全てのユーザーを表示
@@ -108,8 +112,12 @@ const Users: React.FC = () => {
               <td className="py-2 px-3 border-b text-center text-blue-800 underline">
                 <Link href={`/staff/users/${user.uuid}`}>{user.user_name}</Link>
               </td>
-              <td className="py-2 px-3 border-b text-center">{user.user_sex}</td>
-              <td className="py-2 px-3 border-b text-center">{user.user_birthday}</td>
+              <td className="py-2 px-3 border-b text-center">
+                {user.user_sex}
+              </td>
+              <td className="py-2 px-3 border-b text-center">
+                {user.user_birthday}
+              </td>
               <td className="py-2 px-3 border-b text-center">
                 {user.emergency_contact_name}
               </td>

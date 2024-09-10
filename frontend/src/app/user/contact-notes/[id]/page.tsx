@@ -5,6 +5,10 @@ import axios from "axios";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 
+const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL, // 環境変数を使用
+});
+
 type ContactNote = {
   id: number;
   date: string;
@@ -27,8 +31,8 @@ const ContactNoteDetailPage = () => {
   // APIから連絡事項の詳細を取得する関数
   const fetchContactNote = async () => {
     try {
-      const response = await axios.get<ContactNote>(
-        `http://localhost:8000/api/contact-note/${id}/`
+      const response = await apiClient.get<ContactNote>(
+        `/api/contact-note/${id}/`
       );
       setNote(response.data); // 取得したデータを状態にセット
       setLoading(false); // ローディング完了
@@ -41,10 +45,9 @@ const ContactNoteDetailPage = () => {
   // 連絡事項を確認済みにする関数
   const handleConfirm = async () => {
     try {
-      await axios.patch(
-        `http://localhost:8000/api/contact-note/${id}/update-status/`,
-        { is_confirmed: true }
-      );
+      await apiClient.patch(`/api/contact-note/${id}/update-status/`, {
+        is_confirmed: true,
+      });
       // 更新後の状態を反映
       setNote({
         ...note,

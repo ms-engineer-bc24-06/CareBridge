@@ -5,6 +5,10 @@ import axios from "axios";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 
+const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL, // 環境変数を使用
+});
+
 type Prescription = {
   id: number;
   hospital_name: string;
@@ -36,14 +40,14 @@ const PrescriptionDetailPage = () => {
   // APIから処方箋の詳細を取得する関数
   const fetchPrescription = async () => {
     try {
-      const response = await axios.get<Prescription>(
-        `http://localhost:8000/api/prescriptions/${id}/`
+      const response = await apiClient.get<Prescription>(
+        `/api/prescriptions/${id}/`
       );
       setPrescription(response.data); // 取得したデータを状態にセット
 
       // スタッフ名を取得
-      const staffResponse = await axios.get<Staff>(
-        `http://localhost:8000/api/staffs/${response.data.staff}/`
+      const staffResponse = await apiClient.get<Staff>(
+        `/api/staffs/${response.data.staff}/`
       );
       setStaffName(staffResponse.data.staff_name); // スタッフ名をセット
 

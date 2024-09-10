@@ -5,6 +5,10 @@ import { useRouter, usePathname } from "next/navigation";
 import axios from "axios";
 import { getAuth, signOut, onAuthStateChanged } from "firebase/auth";
 
+const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL, // 環境変数を使用
+});
+
 const Header = () => {
   // スタッフ名を保持する状態変数
   const [staffName, setStaffName] = useState<string | null>(null);
@@ -18,8 +22,8 @@ const Header = () => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         // Firebase UIDに基づいてスタッフ情報を取得
-        axios
-          .get(`http://localhost:8000/api/staffs/firebase/${user.uid}/`)
+        apiClient
+          .get(`/api/staffs/firebase/${user.uid}/`)
           .then((response) => {
             setStaffName(response.data.staff_name);
           })

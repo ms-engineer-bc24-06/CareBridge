@@ -5,6 +5,10 @@ import axios from "axios";
 import Link from "next/link";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 
+const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL, // 環境変数を使用
+});
+
 type ContactNote = {
   id: number;
   date: string;
@@ -25,8 +29,8 @@ const ContactNotesPage = () => {
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         try {
-          const response = await axios.get<{ uuid: string }>(
-            `http://localhost:8000/api/users/firebase/${user.uid}/`
+          const response = await apiClient.get<{ uuid: string }>(
+            `/api/users/firebase/${user.uid}/`
           );
           setUserUuid(response.data.uuid); // UUID を状態に保存
         } catch (error) {
@@ -46,8 +50,8 @@ const ContactNotesPage = () => {
   // API から連絡事項を取得する関数
   const fetchContactNotes = async (userUuid: string) => {
     try {
-      const response = await axios.get<ContactNote[]>(
-        `http://localhost:8000/api/contact-notes/${userUuid}/`
+      const response = await apiClient.get<ContactNote[]>(
+        `/api/contact-notes/${userUuid}/`
       );
 
       // 日付でソートして設定
@@ -89,9 +93,15 @@ const ContactNotesPage = () => {
         <table className="min-w-full">
           <thead>
             <tr>
-              <th className="text-sm md:text-base py-2 px-3 border-b text-center">日付</th>
-              <th className="text-sm md:text-base py-2 px-3 border-b text-center">連絡内容</th>
-              <th className="text-sm md:text-base py-2 px-3 border-b text-center">確認</th>
+              <th className="text-sm md:text-base py-2 px-3 border-b text-center">
+                日付
+              </th>
+              <th className="text-sm md:text-base py-2 px-3 border-b text-center">
+                連絡内容
+              </th>
+              <th className="text-sm md:text-base py-2 px-3 border-b text-center">
+                確認
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -108,11 +118,11 @@ const ContactNotesPage = () => {
                   </Link>
                 </td>
                 <td className="py-2 px-3 border-b md:text-base text-sm text-center">
-                    <span className={note.is_confirmed ? "" : "text-accent"}>
-                      {/* 確認済みかどうかを表示 */}
-                      {note.is_confirmed ? "済" : "未"}
-                    </span>
-                  </td> 
+                  <span className={note.is_confirmed ? "" : "text-accent"}>
+                    {/* 確認済みかどうかを表示 */}
+                    {note.is_confirmed ? "済" : "未"}
+                  </span>
+                </td>
               </tr>
             ))}
           </tbody>

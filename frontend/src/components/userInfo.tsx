@@ -3,6 +3,10 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
+const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL, // 環境変数を使用
+});
+
 type CareRecord = {
   date: string;
   meal: string;
@@ -37,8 +41,8 @@ const UserInfo = ({ userUuid }: UserInfoProps) => {
   // ユーザー詳細情報を取得する非同期関数
   const fetchUserDetail = async () => {
     try {
-      const response = await axios.get<UserDetail>(
-        `http://localhost:8000/api/users/${userUuid}/`
+      const response = await apiClient.get<UserDetail>(
+        `/api/users/${userUuid}/`
       );
       setUserDetail(response.data);
     } catch (error) {
@@ -49,8 +53,8 @@ const UserInfo = ({ userUuid }: UserInfoProps) => {
   // ケア記録を取得する非同期関数
   const fetchCareRecords = async () => {
     try {
-      const response = await axios.get<CareRecord[]>(
-        `http://localhost:8000/api/care-records/${userUuid}/`
+      const response = await apiClient.get<CareRecord[]>(
+        `/api/care-records/${userUuid}/`
       );
       const records = response.data;
       setCareRecords(records);

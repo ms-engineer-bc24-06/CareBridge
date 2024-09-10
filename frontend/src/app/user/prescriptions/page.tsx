@@ -5,6 +5,10 @@ import axios from "axios";
 import Link from "next/link";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 
+const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL, // 環境変数を使用
+});
+
 // 処方箋データの型定義
 type Prescription = {
   id: number;
@@ -25,8 +29,8 @@ const PrescriptionPage = () => {
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         try {
-          const response = await axios.get<{ uuid: string }>(
-            `http://localhost:8000/api/users/firebase/${user.uid}/`
+          const response = await apiClient.get<{ uuid: string }>(
+            `/api/users/firebase/${user.uid}/`
           );
           setUserUuid(response.data.uuid); // UUIDを状態に保存
         } catch (error) {
@@ -46,8 +50,8 @@ const PrescriptionPage = () => {
   // APIから処方箋データを取得する関数
   const fetchPrescriptions = async (userUuid: string) => {
     try {
-      const response = await axios.get<Prescription[]>(
-        `http://localhost:8000/api/prescriptions/${userUuid}/`
+      const response = await apiClient.get<Prescription[]>(
+        `/api/prescriptions/${userUuid}/`
       );
 
       // 日付でソートして設定

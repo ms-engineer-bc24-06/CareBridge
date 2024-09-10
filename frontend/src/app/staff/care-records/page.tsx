@@ -4,6 +4,10 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { getAuth } from "firebase/auth";
 
+const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL, // 環境変数を使用
+});
+
 // ユーザーとケア記録の型定義
 type User = {
   uuid: string;
@@ -51,8 +55,8 @@ const CareRecordsListPage: React.FC = () => {
       if (user) {
         try {
           // ここでスタッフのFirebase UIDを使用してユーザーを取得する
-          const response = await axios.get<User[]>(
-            `http://localhost:8000/api/users/?firebase_uid=${user.uid}`
+          const response = await apiClient.get<User[]>(
+            `/api/users/?firebase_uid=${user.uid}`
           );
           const usersData = response.data;
           setUsers(usersData);
@@ -74,8 +78,8 @@ const CareRecordsListPage: React.FC = () => {
 
   const fetchCareRecords = async (userUuid: string) => {
     try {
-      const response = await axios.get<CareRecord[]>(
-        `http://localhost:8000/api/care-records/${userUuid}/`
+      const response = await apiClient.get<CareRecord[]>(
+        `/api/care-records/${userUuid}/`
       );
       // 日付の新しい順にソート
       const sortedRecords = response.data.sort(
@@ -92,9 +96,7 @@ const CareRecordsListPage: React.FC = () => {
 
   const fetchStaffDetails = async () => {
     try {
-      const response = await axios.get<StaffDetail[]>(
-        `http://localhost:8000/api/staffs/`
-      );
+      const response = await apiClient.get<StaffDetail[]>(`/api/staffs/`);
       const staffMap: { [key: string]: StaffDetail } = {};
       response.data.forEach((staff) => {
         staffMap[staff.uuid] = staff;

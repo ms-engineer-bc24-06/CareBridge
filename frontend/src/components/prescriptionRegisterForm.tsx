@@ -4,6 +4,10 @@ import React, { useState, useEffect } from "react";
 import { getAuth } from "firebase/auth";
 import axios from "axios";
 
+const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL, // 環境変数を使用
+});
+
 // OCRで取得したデータの型定義
 interface OcrData {
   hospital_name: string;
@@ -75,8 +79,8 @@ const PrescriptionRegisterForm: React.FC<PrescriptionRegisterFormProps> = ({
 
       if (user) {
         try {
-          const response = await axios.get<Staff>(
-            `http://localhost:8000/api/staffs/firebase/${user.uid}/`
+          const response = await apiClient.get<Staff>(
+            `/api/staffs/firebase/${user.uid}/`
           );
           setStaffUuid(response.data.uuid);
           setStaffName(response.data.staff_name);
@@ -106,7 +110,7 @@ const PrescriptionRegisterForm: React.FC<PrescriptionRegisterFormProps> = ({
     formData.append("file", selectedFile);
 
     const response = await fetch(
-      "http://localhost:8000/api/prescriptions/ocr/",
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/prescriptions/ocr/`,
       {
         method: "POST",
         body: formData,
@@ -149,7 +153,7 @@ const PrescriptionRegisterForm: React.FC<PrescriptionRegisterFormProps> = ({
 
     try {
       const response = await fetch(
-        "http://localhost:8000/api/prescriptions/save/",
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/prescriptions/save/`,
         {
           method: "POST",
           headers: {

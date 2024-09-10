@@ -14,6 +14,10 @@ import {
   Legend,
 } from "chart.js";
 
+const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL, // 環境変数を使用
+});
+
 // Chart.jsのコンポーネントを登録
 ChartJS.register(
   CategoryScale,
@@ -52,8 +56,8 @@ const DashboardChart = ({ userUuid }: DashboardChartProps) => {
   // ケア記録を取得する非同期関数
   const fetchCareRecords = async () => {
     try {
-      const response = await axios.get<CareRecord[]>(
-        `http://localhost:8000/api/care-records/${userUuid}/`
+      const response = await apiClient.get<CareRecord[]>(
+        `/api/care-records/${userUuid}/`
       );
 
       // 日付順にソートし、最新の7日間のデータを取得

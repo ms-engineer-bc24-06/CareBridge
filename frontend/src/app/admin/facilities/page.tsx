@@ -3,20 +3,24 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { getAuth, onAuthStateChanged } from "firebase/auth"; // Firebase Authのインポート
 
+const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL, // 環境変数を使用
+});
+
 // Facilityインターフェースの定義
 interface Facility {
-  id?: number;  // 施設のID（省略可能）
-  facility_name: string;  // 施設名
-  address: string;  // 施設の住所
-  phone_number: string;  // 施設の電話番号
-  email: string;  // 施設のメールアドレス
-  contact_person?: string;  // 施設の担当者（省略可能）
+  id?: number; // 施設のID（省略可能）
+  facility_name: string; // 施設名
+  address: string; // 施設の住所
+  phone_number: string; // 施設の電話番号
+  email: string; // 施設のメールアドレス
+  contact_person?: string; // 施設の担当者（省略可能）
 }
 
 const FacilitiesManagement: React.FC = () => {
-  const [facility, setFacility] = useState<Facility | null>(null);  // 施設情報の状態
-  const [isEditing, setIsEditing] = useState<boolean>(false);  // 編集モードの状態
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});  // エラーメッセージ
+  const [facility, setFacility] = useState<Facility | null>(null); // 施設情報の状態
+  const [isEditing, setIsEditing] = useState<boolean>(false); // 編集モードの状態
+  const [errors, setErrors] = useState<{ [key: string]: string }>({}); // エラーメッセージ
   const [staffFacilityId, setStaffFacilityId] = useState<number | null>(null); // ログイン中のスタッフの施設IDを保存する状態
 
   useEffect(() => {
@@ -39,7 +43,9 @@ const FacilitiesManagement: React.FC = () => {
 
   const fetchStaffFacilityId = async (uid: string) => {
     try {
-      const response = await axios.get(`http://localhost:8000/api/staffs/get_staff_facility_id/?firebase_uid=${uid}`);  // UIDをクエリパラメータとして施設IDを取得するエンドポイント
+      const response = await apiClient.get(
+        `/api/staffs/get_staff_facility_id/?firebase_uid=${uid}`
+      ); // UIDをクエリパラメータとして施設IDを取得するエンドポイント
       setStaffFacilityId(response.data.facility_id); // 取得した施設IDを保存
     } catch (error) {
       console.error("施設IDの取得中にエラーが発生しました");
@@ -48,8 +54,10 @@ const FacilitiesManagement: React.FC = () => {
 
   const fetchFacility = async (facilityId: number) => {
     try {
-      const response = await axios.get<Facility>(`http://localhost:8000/api/facilities/${facilityId}/`);  // ログイン中のスタッフの施設情報を取得
-      setFacility(response.data);  // 取得した施設情報をstateに保存
+      const response = await apiClient.get<Facility>(
+        `/api/facilities/${facilityId}/`
+      ); // ログイン中のスタッフの施設情報を取得
+      setFacility(response.data); // 取得した施設情報をstateに保存
     } catch (error) {
       console.error("施設情報の取得中にエラーが発生しました");
     }
@@ -58,10 +66,13 @@ const FacilitiesManagement: React.FC = () => {
   const handleUpdateFacility = async () => {
     if (facility && validateForm(facility)) {
       try {
-        const response = await axios.put(`http://localhost:8000/api/facilities/${facility.id}/update/`, facility);
-        setFacility(response.data);  // 更新された施設情報をstateに保存
-        setIsEditing(false);  // 編集モードを終了
-        setErrors({});  // エラーメッセージをクリア
+        const response = await apiClient.put(
+          `/api/facilities/${facility.id}/update/`,
+          facility
+        );
+        setFacility(response.data); // 更新された施設情報をstateに保存
+        setIsEditing(false); // 編集モードを終了
+        setErrors({}); // エラーメッセージをクリア
       } catch (error) {
         console.error("施設情報の更新中にエラーが発生しました");
       }
@@ -70,22 +81,20 @@ const FacilitiesManagement: React.FC = () => {
 
   const validateForm = (facility: Facility) => {
     const newErrors: { [key: string]: string } = {};
-    if (!facility.facility_name) newErrors.facility_name = '必須項目です';
-    if (!facility.address) newErrors.address = '必須項目です';
-    if (!facility.phone_number) newErrors.phone_number = '必須項目です';
-    if (!facility.email) newErrors.email = '必須項目です';
-    if (!facility.contact_person) newErrors.contact_person = '必須項目です';
+    if (!facility.facility_name) newErrors.facility_name = "必須項目です";
+    if (!facility.address) newErrors.address = "必須項目です";
+    if (!facility.phone_number) newErrors.phone_number = "必須項目です";
+    if (!facility.email) newErrors.email = "必須項目です";
+    if (!facility.contact_person) newErrors.contact_person = "必須項目です";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const renderRequiredLabel = () => (
-    <span style={{ color: 'red' }}>*</span>
-  );
+  const renderRequiredLabel = () => <span style={{ color: "red" }}>*</span>;
 
   const renderErrorMessage = (fieldName: string) => {
     if (errors[fieldName]) {
-      return <span style={{ color: 'red' }}>{errors[fieldName]}</span>;
+      return <span style={{ color: "red" }}>{errors[fieldName]}</span>;
     }
     return null;
   };
@@ -111,7 +120,12 @@ const FacilitiesManagement: React.FC = () => {
             <strong>担当者:</strong> {facility.contact_person}
           </div>
           <div className="flex justify-end w-full mt-8">
-            <button onClick={() => setIsEditing(true)} className="bg-accent2 text-white px-6 py-3 text-lg rounded">編集</button>
+            <button
+              onClick={() => setIsEditing(true)}
+              className="bg-accent2 text-white px-6 py-3 text-lg rounded"
+            >
+              編集
+            </button>
           </div>
         </div>
       )}
@@ -125,7 +139,9 @@ const FacilitiesManagement: React.FC = () => {
               <input
                 type="text"
                 value={facility.facility_name}
-                onChange={(e) => setFacility({ ...facility, facility_name: e.target.value })}
+                onChange={(e) =>
+                  setFacility({ ...facility, facility_name: e.target.value })
+                }
                 className="border p-3 rounded w-full text-lg"
               />
               {renderErrorMessage("facility_name")}
@@ -135,7 +151,9 @@ const FacilitiesManagement: React.FC = () => {
               <input
                 type="text"
                 value={facility.address}
-                onChange={(e) => setFacility({ ...facility, address: e.target.value })}
+                onChange={(e) =>
+                  setFacility({ ...facility, address: e.target.value })
+                }
                 className="border p-3 rounded w-full text-lg"
               />
               {renderErrorMessage("address")}
@@ -145,7 +163,9 @@ const FacilitiesManagement: React.FC = () => {
               <input
                 type="text"
                 value={facility.phone_number}
-                onChange={(e) => setFacility({ ...facility, phone_number: e.target.value })}
+                onChange={(e) =>
+                  setFacility({ ...facility, phone_number: e.target.value })
+                }
                 className="border p-3 rounded w-full text-lg"
               />
               {renderErrorMessage("phone_number")}
@@ -155,7 +175,9 @@ const FacilitiesManagement: React.FC = () => {
               <input
                 type="email"
                 value={facility.email}
-                onChange={(e) => setFacility({ ...facility, email: e.target.value })}
+                onChange={(e) =>
+                  setFacility({ ...facility, email: e.target.value })
+                }
                 className="border p-3 rounded w-full text-lg"
               />
               {renderErrorMessage("email")}
@@ -164,8 +186,10 @@ const FacilitiesManagement: React.FC = () => {
               担当者{renderRequiredLabel()}:
               <input
                 type="text"
-                value={facility.contact_person ?? ''}
-                onChange={(e) => setFacility({ ...facility, contact_person: e.target.value })}
+                value={facility.contact_person ?? ""}
+                onChange={(e) =>
+                  setFacility({ ...facility, contact_person: e.target.value })
+                }
                 className="border p-3 rounded w-full text-lg"
               />
               {renderErrorMessage("contact_person")}
@@ -173,12 +197,21 @@ const FacilitiesManagement: React.FC = () => {
             <div className="flex justify-end mt-4">
               <button
                 onClick={handleUpdateFacility}
-                className={`bg-accent2 text-white px-6 py-3 rounded text-lg ${Object.keys(errors).length === 0 ? '' : 'opacity-50 cursor-not-allowed'}`}
+                className={`bg-accent2 text-white px-6 py-3 rounded text-lg ${
+                  Object.keys(errors).length === 0
+                    ? ""
+                    : "opacity-50 cursor-not-allowed"
+                }`}
                 disabled={Object.keys(errors).length > 0}
               >
                 保存
               </button>
-              <button onClick={() => setIsEditing(false)} className="bg-accent text-white px-6 py-3 rounded text-lg ml-4">キャンセル</button>
+              <button
+                onClick={() => setIsEditing(false)}
+                className="bg-accent text-white px-6 py-3 rounded text-lg ml-4"
+              >
+                キャンセル
+              </button>
             </div>
           </div>
         </div>

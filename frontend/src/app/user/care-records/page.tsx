@@ -5,6 +5,10 @@ import axios from "axios";
 import Link from "next/link";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 
+const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL, // 環境変数を使用
+});
+
 type CareRecord = {
   id: number;
   date: string;
@@ -39,8 +43,8 @@ const CareRecordsPage = () => {
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         try {
-          const response = await axios.get<{ uuid: string }>(
-            `http://localhost:8000/api/users/firebase/${user.uid}/`
+          const response = await apiClient.get<{ uuid: string }>(
+            `/api/users/firebase/${user.uid}/`
           );
           setUserUuid(response.data.uuid);
         } catch (error) {
@@ -60,8 +64,8 @@ const CareRecordsPage = () => {
   // API からケア記録を取得する関数
   const fetchCareRecords = async (userUuid: string) => {
     try {
-      const response = await axios.get<CareRecord[]>(
-        `http://localhost:8000/api/care-records/${userUuid}/`
+      const response = await apiClient.get<CareRecord[]>(
+        `/api/care-records/${userUuid}/`
       );
 
       // 日付でソートして設定

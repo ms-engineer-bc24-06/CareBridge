@@ -2,6 +2,10 @@ import React, { useState, useEffect } from "react";
 import { getAuth } from "firebase/auth";
 import axios from "axios";
 
+const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL, // 環境変数を使用
+});
+
 type ContactNote = {
   id: number;
   date: string;
@@ -44,8 +48,8 @@ const ContactRegisterForm = ({
       if (user) {
         try {
           // Firebase UIDを使ってスタッフ情報を取得
-          const response = await axios.get<Staff>(
-            `http://localhost:8000/api/staffs/firebase/${user.uid}/`
+          const response = await apiClient.get<Staff>(
+            `/api/staffs/firebase/${user.uid}/`
           );
 
           setStaffUuid(response.data.uuid);
@@ -81,16 +85,13 @@ const ContactRegisterForm = ({
       let response;
       if (note) {
         // 編集の場合は、更新用のエンドポイントにPUTリクエストを送信
-        response = await axios.put(
-          `http://localhost:8000/api/contact-note/${note.id}/update/`,
+        response = await apiClient.put(
+          `/api/contact-note/${note.id}/update/`,
           contactNoteData
         );
       } else {
         // 新規作成の場合はPOSTリクエストを送信
-        response = await axios.post(
-          "http://localhost:8000/api/contact-note/",
-          contactNoteData
-        );
+        response = await apiClient.post("/api/contact-note/", contactNoteData);
       }
 
       if (response.status === 200 || response.status === 201) {

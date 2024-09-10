@@ -7,6 +7,10 @@ import Link from "next/link";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import axios from "axios";
 
+const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL, // 環境変数を使用
+});
+
 const UserDashboard = () => {
   const [userUuid, setUserUuid] = useState<string | null>(null); // UUIDを保存する状態変数
 
@@ -17,8 +21,8 @@ const UserDashboard = () => {
       if (user) {
         try {
           // Firebase UIDを使ってUUIDを取得
-          const response = await axios.get<{ uuid: string }>(
-            `http://localhost:8000/api/users/firebase/${user.uid}/`
+          const response = await apiClient.get<{ uuid: string }>(
+            `/api/users/firebase/${user.uid}/`
           );
           setUserUuid(response.data.uuid); // UUID を状態に保存
         } catch (error) {
