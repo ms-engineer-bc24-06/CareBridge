@@ -35,7 +35,7 @@ const Sidebar = ({
       );
       setUsers(response.data);
     } catch (error) {
-      console.error("Error fetching users:", error);
+      console.error("Error fetching users");
     }
   };
 
