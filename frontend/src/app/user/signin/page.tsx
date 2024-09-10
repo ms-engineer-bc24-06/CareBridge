@@ -16,7 +16,11 @@ const SignInPage: React.FC = () => {
 
     try {
       console.log("Attempting sign in with email:", email);
-      const userCredential = await signInWithEmailAndPassword(auth, email, password); // Firebaseでのサインイン
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      ); // Firebaseでのサインイン
       const user = userCredential.user;
 
       // カスタムクレームを取得
@@ -24,21 +28,27 @@ const SignInPage: React.FC = () => {
       const role = idTokenResult.claims.role;
 
       // 役割に応じてリダイレクト
-      if (role === 'family') {
+      if (role === "family") {
         console.log("Sign in successful as family, redirecting to /user/top");
         router.push("/user/top"); // 介護家族用トップページにリダイレクト
       } else {
-        setError("ログインできませんでした。メールアドレスとパスワードを確認してください。");
+        setError(
+          "ログインできませんでした。メールアドレスとパスワードを確認してください。"
+        );
       }
     } catch (error) {
-      console.error("ログインエラー:", error);
-      setError("ログインできませんでした。メールアドレスとパスワードを確認してください。");
+      console.error("ログインエラー");
+      setError(
+        "ログインできませんでした。メールアドレスとパスワードを確認してください。"
+      );
     }
   };
 
   return (
     <div className="flex flex-col items-center md:justify-center h-screen bg-cover bg-center p-4">
-      <h1 className="text-xl md:text-4xl md:mb-12 mb-8">ご家族ログインページ</h1>
+      <h1 className="text-xl md:text-4xl md:mb-12 mb-8">
+        ご家族ログインページ
+      </h1>
       <form
         onSubmit={handleSignIn}
         className="w-10/12 max-w-sm md:max-w-md bg-white p-6 md:p-8 rounded-lg shadow-lg"
@@ -95,7 +105,10 @@ const SignInPage: React.FC = () => {
         </Link>
       </div>
       <div className="mt-2 md:mt-4 text-sm md:text-xl">
-        <Link href="/user/userPrivasyPolicy" className="text-blue-500 hover:underline">
+        <Link
+          href="/user/userPrivasyPolicy"
+          className="text-blue-500 hover:underline"
+        >
           carebridge プライバシーポリシー
         </Link>
       </div>

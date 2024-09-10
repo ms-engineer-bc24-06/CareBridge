@@ -63,7 +63,7 @@ const CareRecordsListPage: React.FC = () => {
             fetchCareRecords(user.uuid);
           });
         } catch (error) {
-          console.error("ユーザー情報の取得中にエラーが発生しました", error);
+          console.error("ユーザー情報の取得中にエラーが発生しました");
         }
       }
     };

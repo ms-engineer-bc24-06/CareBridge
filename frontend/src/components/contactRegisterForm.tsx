@@ -51,7 +51,7 @@ const ContactRegisterForm = ({
           setStaffUuid(response.data.uuid);
           setStaffName(response.data.staff_name);
         } catch (error) {
-          console.error("スタッフ情報の取得中にエラーが発生しました:", error);
+          console.error("スタッフ情報の取得中にエラーが発生しました");
         }
       }
     };
@@ -106,7 +106,7 @@ const ContactRegisterForm = ({
         );
       }
     } catch (error) {
-      console.error("エラーが発生しました:", error);
+      console.error("エラーが発生しました");
       alert(
         note
           ? "連絡ノートの更新中にエラーが発生しました。"
