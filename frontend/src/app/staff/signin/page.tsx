@@ -7,8 +7,8 @@ import Link from "next/link";
 
 const SignInPage: React.FC = () => {
   const router = useRouter();
-  const [email, setEmail] = useState<string>(""); 
-  const [password, setPassword] = useState<string>(""); 
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string>("");
 
   const handleSignIn = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -28,27 +28,32 @@ const SignInPage: React.FC = () => {
 
       // 管理者権限があるか確認
       if (role === "admin") {
-
         // Firebase UIDを取得して、スタッフ情報をバックエンドから取得
         const firebaseUid = user.uid;
 
-        const response = await fetch(`http://localhost:8000/api/staffs/firebase/${firebaseUid}`, {
-          method: 'GET',
-          credentials: 'include', 
-        });
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/staffs/firebase/${firebaseUid}`,
+          {
+            method: "GET",
+            credentials: "include",
+          }
+        );
 
         const staff = await response.json(); // この response はスタッフの情報を取得するためのもの
 
         if (staff) {
           const facilityId = staff.facility;
 
-          localStorage.setItem('facilityId', facilityId);// ローカルストレージに facility_id を保存
+          localStorage.setItem("facilityId", facilityId); // ローカルストレージに facility_id を保存
 
           // 施設のis_activeステータスをチェック
-          const facilityResponse = await fetch(`http://localhost:8000/api/facilities/${facilityId}`, {
-            method: 'GET',
-            credentials: 'include'
-          });
+          const facilityResponse = await fetch(
+            `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/facilities/${facilityId}`,
+            {
+              method: "GET",
+              credentials: "include",
+            }
+          );
 
           if (!facilityResponse.ok) {
             throw new Error("施設情報の取得に失敗しました");

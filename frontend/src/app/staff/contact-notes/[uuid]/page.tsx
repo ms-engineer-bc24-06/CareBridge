@@ -7,6 +7,10 @@ import Link from "next/link";
 import Modal from "../../../../components/modalCareRegister";
 import ContactRegisterForm from "../../../../components/contactRegisterForm";
 
+const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL, // 環境変数を使用
+});
+
 type ContactNote = {
   id: number;
   date: string;
@@ -62,8 +66,8 @@ const ContactNotesPage = () => {
   // 連絡ノートをユーザーIDで取得する関数
   const fetchContactNotes = async (userUuid: string) => {
     try {
-      const response = await axios.get<ContactNote[]>(
-        `http://localhost:8000/api/contact-notes/${userUuid}/`
+      const response = await apiClient.get<ContactNote[]>(
+        `/api/contact-notes/${userUuid}/`
       );
 
       // 日付でソートして新しい順に並べ替える
@@ -82,8 +86,8 @@ const ContactNotesPage = () => {
   // ユーザー詳細を取得する関数
   const fetchUserDetail = async (userUuid: string) => {
     try {
-      const response = await axios.get<UserDetail>(
-        `http://localhost:8000/api/users/${userUuid}/`
+      const response = await apiClient.get<UserDetail>(
+        `/api/users/${userUuid}/`
       );
       setUserDetail(response.data); // 取得したユーザー詳細をセット
     } catch (error) {
@@ -94,9 +98,7 @@ const ContactNotesPage = () => {
   // スタッフ情報を取得してマッピングを作成する関数
   const fetchStaffDetails = async () => {
     try {
-      const response = await axios.get<StaffDetail[]>(
-        `http://localhost:8000/api/staffs/`
-      );
+      const response = await apiClient.get<StaffDetail[]>(`/api/staffs/`);
       const staffMap: { [key: string]: StaffDetail } = {};
       response.data.forEach((staff) => {
         staffMap[staff.uuid] = staff;

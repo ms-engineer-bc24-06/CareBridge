@@ -5,6 +5,10 @@ import axios from "axios";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 
+const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL, // 環境変数を使用
+});
+
 type CareRecord = {
   care_record_id: number;
   date: string;
@@ -40,8 +44,8 @@ const CareRecordDetailPage = () => {
   // ケア記録を取得する関数
   const fetchCareRecord = async () => {
     try {
-      const response = await axios.get<CareRecord>(
-        `http://localhost:8000/api/care-records/detail/${id}/`
+      const response = await apiClient.get<CareRecord>(
+        `/api/care-records/detail/${id}/`
       );
       setCareRecord(response.data);
       setLoading(false);
@@ -54,9 +58,7 @@ const CareRecordDetailPage = () => {
   // スタッフ情報を取得してマッピングを作成する関数
   const fetchStaffDetails = async () => {
     try {
-      const response = await axios.get<StaffDetail[]>(
-        `http://localhost:8000/api/staffs/`
-      );
+      const response = await apiClient.get<StaffDetail[]>(`/api/staffs/`);
       const staffMap: { [key: string]: StaffDetail } = {};
       response.data.forEach((staff) => {
         staffMap[staff.uuid] = staff;

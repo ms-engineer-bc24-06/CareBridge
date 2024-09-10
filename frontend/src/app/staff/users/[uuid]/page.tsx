@@ -3,6 +3,10 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import axios from "axios";
 
+const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL, // 環境変数を使用
+});
+
 type UserDetail = {
   uuid: string;
   user_id: string;
@@ -34,8 +38,8 @@ const UserDetailPage = () => {
   // ユーザー詳細データをAPIから取得する関数
   const fetchUserDetail = async (userUuid: string) => {
     try {
-      const response = await axios.get<UserDetail>(
-        `http://localhost:8000/api/users/${userUuid}/`
+      const response = await apiClient.get<UserDetail>(
+        `/api/users/${userUuid}/`
       );
       setUser(response.data);
       setLoading(false);

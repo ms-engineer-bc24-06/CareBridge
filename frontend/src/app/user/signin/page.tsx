@@ -15,7 +15,6 @@ const SignInPage: React.FC = () => {
     event.preventDefault();
 
     try {
-      console.log("Attempting sign in with email:", email);
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
@@ -29,7 +28,6 @@ const SignInPage: React.FC = () => {
 
       // 役割に応じてリダイレクト
       if (role === "family") {
-        console.log("Sign in successful as family, redirecting to /user/top");
         router.push("/user/top"); // 介護家族用トップページにリダイレクト
       } else {
         setError(

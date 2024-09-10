@@ -6,6 +6,10 @@ import Link from "next/link";
 import Modal from "../../../../components/modalCareRegister";
 import CareRegisterForm from "../../../../components/careRegisterForm";
 
+const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL, // 環境変数を使用
+});
+
 // ケア記録データの型定義
 type CareRecord = {
   id: number;
@@ -74,8 +78,8 @@ const CareRecordsPage = () => {
   // APIからケア記録を取得
   const fetchCareRecords = async (userUuid: string) => {
     try {
-      const response = await axios.get<CareRecord[]>(
-        `http://localhost:8000/api/care-records/${userUuid}/`
+      const response = await apiClient.get<CareRecord[]>(
+        `/api/care-records/${userUuid}/`
       );
 
       // 取得したケア記録を日付順にソート（新しい順）
@@ -94,8 +98,8 @@ const CareRecordsPage = () => {
   // APIからユーザー詳細情報を取得
   const fetchUserDetail = async (userUuid: string) => {
     try {
-      const response = await axios.get<UserDetail>(
-        `http://localhost:8000/api/users/${userUuid}/`
+      const response = await apiClient.get<UserDetail>(
+        `/api/users/${userUuid}/`
       );
       setUserDetail(response.data); // ユーザー詳細情報を状態にセット
     } catch (error) {
@@ -106,9 +110,7 @@ const CareRecordsPage = () => {
   // APIからスタッフ情報を取得して、UUIDをキーとするマッピングを作成
   const fetchStaffDetails = async () => {
     try {
-      const response = await axios.get<StaffDetail[]>(
-        `http://localhost:8000/api/staffs/`
-      );
+      const response = await apiClient.get<StaffDetail[]>(`/api/staffs/`);
       const staffMap: { [key: string]: StaffDetail } = {};
       response.data.forEach((staff) => {
         staffMap[staff.uuid] = staff;
@@ -138,7 +140,6 @@ const CareRecordsPage = () => {
 
   // モーダルを開く関数（新規登録または編集用）
   const openModal = (record: CareRecord | null = null) => {
-    console.log("openModalで渡されたrecordオブジェクト:", record);
     setSelectedRecord(record); // 編集対象のケア記録をセット（新規の場合はnull）
     setIsModalOpen(true); // モーダルを表示
   };
@@ -152,13 +153,10 @@ const CareRecordsPage = () => {
 
   // ケア記録を削除する関数
   const handleDelete = async (recordId: number) => {
-    console.log("handleDeleteで渡されたrecordId:", recordId);
     const confirmDelete = confirm("このケア記録を削除してもよろしいですか？");
     if (confirmDelete) {
       try {
-        await axios.delete(
-          `http://localhost:8000/api/care-records/delete/${recordId}/`
-        );
+        await apiClient.delete(`/api/care-records/delete/${recordId}/`);
         fetchCareRecords(userUuid); // 削除後にケア記録を再取得
       } catch (error) {
         console.error("ケア記録の削除中にエラーが発生しました");
@@ -254,11 +252,19 @@ const CareRecordsPage = () => {
             <tr key={record.id}>
               <td className="py-2 px-3 border-b text-center">{record.date}</td>
               <td className="py-2 px-3 border-b text-center">{record.meal}</td>
-              <td className="py-2 px-3 border-b text-center">{record.excretion}</td>
+              <td className="py-2 px-3 border-b text-center">
+                {record.excretion}
+              </td>
               <td className="py-2 px-3 border-b text-center">{record.bath}</td>
-              <td className="py-2 px-3 border-b text-center">{record.temperature}</td>
-              <td className="py-2 px-3 border-b text-center">{record.diastolic_bp}</td>
-              <td className="py-2 px-3 border-b text-center">{record.systolic_bp}</td>
+              <td className="py-2 px-3 border-b text-center">
+                {record.temperature}
+              </td>
+              <td className="py-2 px-3 border-b text-center">
+                {record.diastolic_bp}
+              </td>
+              <td className="py-2 px-3 border-b text-center">
+                {record.systolic_bp}
+              </td>
               <td className="py-2 px-3 border-b ">{record.comments}</td>
               {/* スタッフの名前を表示 */}
               <td className="py-2 px-3 border-b text-center">

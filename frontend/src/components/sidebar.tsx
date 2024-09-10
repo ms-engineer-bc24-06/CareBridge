@@ -2,6 +2,10 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
+const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL, // 環境変数を使用
+});
+
 type SidebarProps = {
   onSelectUser: (userUuid: string) => void;
   selectedUserUuid: string | null; // 現在選択されているユーザーのUUID
@@ -30,8 +34,8 @@ const Sidebar = ({
   // ユーザー一覧を取得する非同期関数
   const fetchUsers = async (firebaseUid: string) => {
     try {
-      const response = await axios.get<User[]>(
-        `http://localhost:8000/api/users/?firebase_uid=${firebaseUid}`
+      const response = await apiClient.get<User[]>(
+        `/api/users/?firebase_uid=${firebaseUid}`
       );
       setUsers(response.data);
     } catch (error) {

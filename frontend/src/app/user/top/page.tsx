@@ -5,6 +5,10 @@ import axios from "axios";
 import Link from "next/link";
 import { getAuth, onAuthStateChanged } from "firebase/auth"; // Firebase Auth をインポート
 
+const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL, // 環境変数を使用
+});
+
 type ContactNote = {
   id: number;
   date: string;
@@ -24,8 +28,8 @@ const UserTop = () => {
       if (user) {
         try {
           // Firebase UIDを使ってUUIDを取得
-          const response = await axios.get<{ uuid: string }>(
-            `http://localhost:8000/api/users/firebase/${user.uid}/`
+          const response = await apiClient.get<{ uuid: string }>(
+            `/api/users/firebase/${user.uid}/`
           );
           setUserUuid(response.data.uuid);
         } catch (error) {
@@ -45,8 +49,8 @@ const UserTop = () => {
   // APIから連絡事項を取得する関数
   const fetchContactNotes = async (userUuid: string) => {
     try {
-      const response = await axios.get<ContactNote[]>(
-        `http://localhost:8000/api/contact-notes/${userUuid}/`
+      const response = await apiClient.get<ContactNote[]>(
+        `/api/contact-notes/${userUuid}/`
       );
 
       // 日付でソートして最新4件を表示
@@ -77,16 +81,13 @@ const UserTop = () => {
           <table className="min-w-full">
             <thead>
               <tr>
-                <th
-                  className="text-sm md:text-base py-2 px-3 border-b text-center">
+                <th className="text-sm md:text-base py-2 px-3 border-b text-center">
                   日付
                 </th>
-                <th
-                  className="text-sm md:text-base py-2 px-3 border-b text-sm text-center">
+                <th className="text-sm md:text-base py-2 px-3 border-b text-center">
                   連絡内容
                 </th>
-                <th
-                  className="text-sm md:text-base py-2 px-3 border-b text-sm text-center">
+                <th className="text-sm md:text-base py-2 px-3 border-b text-center">
                   確認
                 </th>
               </tr>
@@ -94,10 +95,10 @@ const UserTop = () => {
             <tbody>
               {contactNotes.map((note) => (
                 <tr key={note.id}>
-                  <td className="py-2 px-3 border-b md:text-base text-sm text-sm text-center">
+                  <td className="py-2 px-3 border-b md:text-base text-sm text-center">
                     {formatDate(note.date)} {/* 日付をMM/DD形式で表示 */}
                   </td>
-                  <td className="py-2 px-3 border-b md:text-base text-sm text-sm">
+                  <td className="py-2 px-3 border-b md:text-base text-sm">
                     <Link href={`/user/contact-notes/${note.id}`}>
                       <div className="line-clamp-2 text-blue-600 hover:underline">
                         {note.detail} {/* 連絡事項の詳細を表示 */}
@@ -105,8 +106,8 @@ const UserTop = () => {
                     </Link>
                   </td>
                   <td className="py-2 px-3 border-b md:text-base text-sm text-center">
-                      {note.is_confirmed ? "済" : "未"}
-                  </td> 
+                    {note.is_confirmed ? "済" : "未"}
+                  </td>
                 </tr>
               ))}
             </tbody>

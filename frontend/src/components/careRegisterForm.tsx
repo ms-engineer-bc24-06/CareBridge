@@ -2,6 +2,10 @@ import React, { useState, useEffect } from "react";
 import { getAuth } from "firebase/auth";
 import axios from "axios";
 
+const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL, // 環境変数を使用
+});
+
 // スタッフの情報を定義する型
 type Staff = {
   uuid: string;
@@ -73,8 +77,8 @@ const CareRegisterForm: React.FC<CareRecordFormProps> = ({
       if (user) {
         try {
           // 現在のユーザーのUIDを使ってスタッフ情報を取得
-          const response = await axios.get<Staff>(
-            `http://localhost:8000/api/staffs/firebase/${user.uid}/`
+          const response = await apiClient.get<Staff>(
+            `/api/staffs/firebase/${user.uid}/`
           );
 
           // スタッフUUIDと名前を状態にセット
@@ -125,7 +129,7 @@ const CareRegisterForm: React.FC<CareRecordFormProps> = ({
       if (record && record.id) {
         // 編集の場合、PUTリクエストを送信
         response = await fetch(
-          `http://localhost:8000/api/care-records/update/${record.id}/`,
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/care-records/update/${record.id}/`,
           {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -135,7 +139,7 @@ const CareRegisterForm: React.FC<CareRecordFormProps> = ({
       } else {
         // 新規作成の場合、POSTリクエストを送信
         response = await fetch(
-          "http://localhost:8000/api/care-records/create/",
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/care-records/create/`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
