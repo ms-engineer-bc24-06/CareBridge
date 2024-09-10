@@ -1,5 +1,4 @@
-// フロントエンドで職員の情報を収集し、その情報をバックエンド（Django）に送信し、バックエンドがFirebase Admin SDKを使用してFirebaseに新しいユーザーを作成する
-// APIキーやその他の認証情報はサーバー側で安全に管理されます。セキュリティが向上します。
+
 "use client";
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -74,7 +73,7 @@ const StaffsManagement: React.FC = () => {
         fetchStaffs(); 
 
       } catch (error) {
-        console.error("スタッフ情報の取得中にエラーが発生しました:", error);
+        console.error("スタッフ情報の取得中にエラーが発生しました:");
       }
     }
   };
@@ -102,7 +101,7 @@ const StaffsManagement: React.FC = () => {
       setStaffs(response.data);  
       setFilteredStaffs(response.data);  
     } catch (error) {
-      console.error("職員の取得中にエラーが発生しました", error);
+      console.error("職員の取得中にエラーが発生しました");
     }
   };
   // 職員を追加する処理
@@ -161,20 +160,19 @@ const StaffsManagement: React.FC = () => {
               setShowAddForm(false);
               setErrors({});
           } else {
-              console.error("DBにスタッフを保存する際にエラーが発生しました", dbResponse.data);
+              console.error("DBにスタッフを保存する際にエラーが発生しました");
           }
       } else {
-          console.error("サーバーでの職員作成に失敗しました", firebaseResponse.data);
+          console.error("サーバーでの職員作成に失敗しました");
       }
   } catch (error) {
-      console.error("サーバーでの職員作成に失敗しました", error);
+      console.error("サーバーでの職員作成に失敗しました");
       setErrors({ api: "職員の作成に失敗しました。" });
   }
 };
 
 // 職員を編集する処理
   const handleEditStaffClick = (staff: Staff) => {
-    console.log("Staff object:", staff);
     if (!staff.uuid) {
       console.error("The staff object does not contain a uuid.");
       return;
@@ -192,13 +190,12 @@ const StaffsManagement: React.FC = () => {
   // 職員情報を更新する処理
   const handleUpdateStaff = async () => {
     if (!editStaff || !editStaff.uuid) {
-        console.error("Invalid staff data: UUID is missing.");
+        console.error("エラーが発生しました");
         setErrors({ uuid: "UUIDが存在しません。" });
         return;
     }
 
     try {
-        console.log("Sending update request for staff:", editStaff);
         const csrfToken = getCsrfToken();
         const response = await axios.put(`http://localhost:8000/api/staffs/${editStaff.uuid}/update/`, {
             staff_name: editStaff.staff_name,
@@ -212,17 +209,16 @@ const StaffsManagement: React.FC = () => {
         });
 
         if (response.status === 200) {
-            console.log("Update successful:", response.data);
             setStaffs(staffs.map(staff => (staff.uuid === editStaff.uuid ? response.data : staff)));
             setFilteredStaffs(filteredStaffs.map(staff => (staff.uuid === editStaff.uuid ? response.data : staff)));
             setEditStaff(null);
             setErrors({});
         } else {
-            console.error("Failed to update staff, status code:", response.status);
+            console.error("Failed to update staff, status code:");
             setErrors({ api: "更新に失敗しました。サーバーのエラーを確認してください。" });
         }
     } catch (error) {
-        console.error("職員の更新中にエラーが発生しました", error);
+        console.error("職員の更新中にエラーが発生しました");
         setErrors({ api: "サーバーとの通信でエラーが発生しました。" });
     }
   };
@@ -231,17 +227,15 @@ const StaffsManagement: React.FC = () => {
   const handleDeleteStaff = async (uuid: string | undefined) => {
     try {
       if (!uuid) {
-        console.error("Invalid UUID: ", uuid);
+        console.error("エラーが発生しました");
         return;
       }
 
       const staffToDelete = staffs.find(staff => staff.uuid === uuid);
       if (!staffToDelete) {
-        console.error("Staff not found for UUID: ", uuid);
+        console.error("エラーが発生しました");
         return;
       }
-      
-      console.log("Deleting staff with UUID: ", uuid); // デバッグ用
 
       const csrfToken = getCsrfToken();
 
@@ -262,17 +256,15 @@ const StaffsManagement: React.FC = () => {
             'X-CSRFToken': csrfToken || ''
           }
         });
-        console.log("Staff deleted from Firebase"); // デバッグ用
       } else {
-        console.warn("Firebase UID not found for staff: ", uuid);
+        console.warn("エラーが発生しました");
       }
 
       setStaffs(prevStaffs => prevStaffs.filter(staff => staff.uuid !== uuid));
       setFilteredStaffs(prevFilteredStaffs => prevFilteredStaffs.filter(staff => staff.uuid !== uuid));
 
-      console.log("Staff removed from state"); // デバッグ用
     } catch (error) {
-      console.error("職員の削除中にエラーが発生しました", error);
+      console.error("職員の削除中にエラーが発生しました");
     }
   };
 
@@ -349,7 +341,6 @@ const StaffsManagement: React.FC = () => {
               <button onClick={() => handleEditStaffClick(staff)} className="bg-accent2 text-white px-4 py-2 rounded">編集</button>
                 <button 
                   onClick={() => {
-                    console.log("Delete button clicked for staff: ", staff.staff_id); // デバッグ用
                     handleDeleteStaff(staff.uuid);
                   }} 
                   className="bg-accent text-white px-4 py-2 rounded"
@@ -438,7 +429,7 @@ const StaffsManagement: React.FC = () => {
               {renderErrorMessage("user_id")}
             </label>
             <label className="block mb-2">
-              パスワード{renderRequiredLabel()}:
+              パスワード(数字6桁以上){renderRequiredLabel()}:
               <div className="relative">
                 <input
                   type={passwordVisible ? "text" : "password"}
@@ -460,7 +451,7 @@ const StaffsManagement: React.FC = () => {
               <small className="text-gray-500">6文字以上のパスワードを入力してください</small>
             </label>
             <label className="block mb-2">
-              パスワードの確認{renderRequiredLabel()}:
+              パスワードの確認(数字6桁以上){renderRequiredLabel()}:
               <div className="relative">
                 <input
                   type={passwordVisible ? "text" : "password"}

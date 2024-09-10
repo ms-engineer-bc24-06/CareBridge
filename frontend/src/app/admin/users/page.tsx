@@ -70,7 +70,7 @@ const UsersManagement: React.FC = () => {
         // 施設IDとFirebase UIDをfetchUsers関数に渡す
         fetchUsers(response.data.facility, user.uid);  
       } catch (error) {
-        console.error("施設IDの取得中にエラーが発生しました", (error as Error).message);
+        console.error("施設IDの取得中にエラーが発生しました");
       }
     }
   };
@@ -83,7 +83,7 @@ const UsersManagement: React.FC = () => {
       setUsers(response.data);  
       setFilteredUsers(response.data);  
     } catch (error) {
-      console.error("ユーザーの取得中にエラーが発生しました", (error as Error).message);
+      console.error("ユーザーの取得中にエラーが発生しました");
     }
   };
   
@@ -109,8 +109,6 @@ const UsersManagement: React.FC = () => {
           }
         });
   
-        console.log('Firebase Response:', firebaseResponse.data);
-  
         // Firebaseで取得したUIDを使用して新しいユーザーデータを作成
         const userData = {
           firebase_uid: firebaseResponse.data.user_id,  // FirebaseのUIDを使用
@@ -134,17 +132,15 @@ const UsersManagement: React.FC = () => {
           }
         });
   
-        console.log('PostgreSQL Response:', response.data);
-  
         setUsers([...users, response.data]);
         setFilteredUsers([...users, response.data]);
         setNewUser(null);
         setShowAddForm(false);
         setErrors({});
       } catch (error) {
-        console.error("ユーザーの追加中にエラーが発生しました", (error as Error).message);
+        console.error("ユーザーの追加中にエラーが発生しました");
         if ((error as any).response) {
-          console.error("Error response:", (error as any).response.data);
+          console.error("Error response:");
         }
         setErrors({ api: "ユーザーの追加に失敗しました。" });
       }
@@ -178,9 +174,8 @@ const UsersManagement: React.FC = () => {
     const userToEdit = users.find(user => user.uuid === userId);
     if (userToEdit) {
         setEditUser(userToEdit);  // 選択したユーザーを編集用のステートに設定
-        console.log("Editing user:", userToEdit);  // デバッグ用
     } else {
-        console.error("User not found:", userId);
+        console.error("User not found:");
     }
   };
 
@@ -222,17 +217,16 @@ const UsersManagement: React.FC = () => {
         });
 
         if (response.status === 200) {
-            console.log("Update successful:", response.data);
             setUsers(users.map(user => (user.uuid === editUser.uuid ? response.data : user)));
             setFilteredUsers(filteredUsers.map(user => (user.uuid === editUser.uuid ? response.data : user)));
             setEditUser(null);
             setErrors({});
         } else {
-            console.error("Failed to update user, status code:", response.status);
+            console.error("Failed to update user, status code:");
             setErrors({ api: "更新に失敗しました。サーバーのエラーを確認してください。" });
         }
     } catch (error) {
-        console.error("ユーザーの更新中にエラーが発生しました", error);
+        console.error("ユーザーの更新中にエラーが発生しました");
         setErrors({ api: "サーバーとの通信でエラーが発生しました。" });
     }
   };
@@ -242,17 +236,15 @@ const UsersManagement: React.FC = () => {
   const handleDeleteUser = async (uuid: string | undefined) => {
     try {
       if (!uuid) {
-        console.error("Invalid UUID: ", uuid);
+        console.error("エラーが発生しました");
         return;
       }
   
       const userToDelete = users.find(user => user.uuid === uuid);
       if (!userToDelete) {
-        console.error("User not found for UUID: ", uuid);
+        console.error("エラーが発生しました");
         return;
       }
-  
-      console.log("Deleting user with UUID: ", uuid); // デバッグ用
   
       const csrfToken = getCsrfToken();
   
@@ -273,17 +265,15 @@ const UsersManagement: React.FC = () => {
             'X-CSRFToken': csrfToken || ''
           }
         });
-        console.log("User deleted from Firebase"); // デバッグ用
       } else {
-        console.warn("Firebase UID not found for user: ", uuid);
+        console.warn("エラーが発生しました");
       }
   
       setUsers(prevUsers => prevUsers.filter(user => user.uuid !== uuid));
       setFilteredUsers(prevFilteredUsers => prevFilteredUsers.filter(user => user.uuid !== uuid));
   
-      console.log("User removed from state"); // デバッグ用
     } catch (error) {
-      console.error("ユーザーの削除中にエラーが発生しました", error);
+      console.error("ユーザーの削除中にエラーが発生しました");
     }
   };  
 
@@ -633,7 +623,7 @@ const UsersManagement: React.FC = () => {
               {renderErrorMessage("email")}
             </label>
             <label className="block mb-2">
-              パスワード{renderRequiredLabel()}:
+              パスワード(数字6桁以上){renderRequiredLabel()}:
               <input
                 type="password"
                 value={newUser.password}
@@ -644,7 +634,7 @@ const UsersManagement: React.FC = () => {
               {renderErrorMessage("password")}
             </label>
             <label className="block mb-2">
-              パスワード確認{renderRequiredLabel()}:
+              パスワード(数字6桁以上)確認{renderRequiredLabel()}:
               <input
                 type="password"
                 value={newUser.confirmPassword}

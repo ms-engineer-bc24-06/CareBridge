@@ -22,6 +22,7 @@ const PaymentPage: React.FC = () => {
     const stripe = await stripePromise;
 
     if (!stripe) {
+      console.error('Stripe.js failed to load.');
       return;
     }
 
@@ -48,12 +49,12 @@ const PaymentPage: React.FC = () => {
       });
 
       if (result?.error) {
-        console.error(result.error.message);
       } else {
         // 支払いが成功した場合に成功メッセージを表示
         setPaymentSuccess(true);
       }
     } catch (error) {
+      console.error('Error during checkout:');
     }
   };
 
