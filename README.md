@@ -1,6 +1,8 @@
 # 設計ドキュメント
 
-## プロダクト全体像
+### プロダクト全体像
+
+[carebridge アプリ動画を再生する](https://drive.google.com/file/d/1Vm52IrwQR0o821QlXBSGE9cbGAQgSz7g/view?usp=share_link)
 
 CareBridge は、介護施設職員と利用者の家族の間で情報を効率的に共有し、コミュニケーションの摩擦を減らして負担を軽減することを目的とした介護施設向けの情報共有システムです。
 
