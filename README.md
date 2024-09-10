@@ -2,6 +2,9 @@
 
 ### プロダクト全体像
 
+[carebridgeアプリ動画を再生する](https://drive.google.com/file/d/1Vm52IrwQR0o821QlXBSGE9cbGAQgSz7g/view?usp=share_link)
+
+
 
 （介護施設職員間、利用者家族の間での情報共有を効率化し、介護職員・利用者家族ともに負担を軽減。コミュニケーションの摩擦軽減）したい
 （介護施設職員）向けの、
