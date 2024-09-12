@@ -144,6 +144,13 @@ Care Bridge ロゴ
 | インフラストラクチャ | サーバー設定、ネットワーク設定、クラウドリソース管理 |
 | セキュリティ         | 認証、認可、データ暗号化、アクセス制御の設計と実装   |
 
+<details>
+    <summary>アーキテクチャー図</summary>
+
+![carebridge_architecture](images/image_architecture.jpg)
+
+</details>
+
 ## 6. プロジェクト管理
 
 | 項目             | 内容                                                                                        |
